@@ -15,6 +15,8 @@
 <label>DRAW EVERY:</label>
 <input type="range" id="sortSpeedRange" name="speed" value="10" min="1" max="500"/>
 <label id="currentSortSpeedLabel">10</label>
+<br>
+<label id="debugLabel">debug log will be here:</label>
 <script>
 
     class Colour {
@@ -314,12 +316,12 @@
            arr[j] = tmp;
         }
     }
-
+/*
     var arr = [1,2,3,4,5];
     shuffle(arr);
     var s = new HeapSorter(arr, function(n1, n2) {return n1-n2;});
 
-
+*/
     function shuffle(a) {
         for (let i = a.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -327,11 +329,18 @@
         }
     }
 
+    const debugLabel = document.getElementById("debugLabel");
+
+
     const maxColourValue = 255;
     const maxCanvasWidth = maxColourValue * 5;
-    const documentWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-    const step = Math.max(1, Math.round(maxCanvasWidth / documentWidth));
+    const documentWidth = document.documentElement.clientWidth;
+    debugLabel.innerHTML += "docuemnt width IS: " +documentWidth;
+    const step = Math.max(1, Math.ceil(maxCanvasWidth / documentWidth));
+    debugLabel.innerHTML += " step is: " +step;
+
     const canvasWidth = Math.round(maxCanvasWidth / step)
+    debugLabel.innerHTML += " canvas width: " +canvasWidth;
 
     const pizdaCanvas = document.getElementById("pizdaCanvas");
     pizdaCanvas.width = canvasWidth
