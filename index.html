@@ -6,7 +6,7 @@
 <br>
 <input type="button" id="startButton" value="START"/>
 <input type="button" id="stopButton" value="STOP"/>
-<label id="statusLabel">Lets GO</label>
+<label id="statusLabel">Lets GO! Click/Tap/Lick on pic or press START button</label>
 <br>
 <label>TARGET FPS:</label>
 <input type="range" id="fpsRange" name="fps" value="30" min="0" max="60" step="15"/>
@@ -335,12 +335,12 @@
     const maxColourValue = 255;
     const maxCanvasWidth = maxColourValue * 5;
     const documentWidth = document.documentElement.clientWidth;
-    debugLabel.innerHTML += "docuemnt width IS: " +documentWidth;
+    debugLabel.innerHTML += "Doc width IS: " +documentWidth;
     const step = Math.max(1, Math.ceil(maxCanvasWidth / documentWidth));
-    debugLabel.innerHTML += " step is: " +step;
+    debugLabel.innerHTML += " Step is: " +step;
 
     const canvasWidth = Math.round(maxCanvasWidth / step)
-    debugLabel.innerHTML += " canvas width: " +canvasWidth;
+    debugLabel.innerHTML += " Canvas width: " +canvasWidth;
 
     const pizdaCanvas = document.getElementById("pizdaCanvas");
     pizdaCanvas.width = canvasWidth
@@ -527,18 +527,19 @@
     const sortSpeedRange = document.getElementById("sortSpeedRange");
     startButton.onclick = function () {
         if (sortStarted) {
-            console.log("Sort already has started");
+            statusLabel.innerHTML = "Cmon, I am already sorting"
         } else {
             sortStarted = true;
             chainedTick();
             registerReDraw();
-            console.log("sort started");
-            statusLabel.innerHTML = "Sort started"
+            statusLabel.innerHTML = "Sorting"
 
         }
     };
     stopButton.onclick = function () {
         sortStarted = false;
+        statusLabel.innerHTML = "Paused"
+
     };
     fpsRange.onchange = function () {
         console.log("fps range change", fpsRange.value);
@@ -547,6 +548,18 @@
     };
     sortSpeedRange.onchange = function () {
         currentSortSpeedLabel.innerHTML = sortSpeedRange.value;
+    }
+
+    pizdaCanvas.onclick = function() {
+        if (sortStarted) {
+            sortStarted = false;
+            statusLabel.innerHTML = "Paused"
+        } else {
+            sortStarted = true;
+            chainedTick();
+            registerReDraw();
+            statusLabel.innerHTML = "Sorting"
+        }
     }
 
 
