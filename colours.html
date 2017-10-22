@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<canvas id="pizdaCanvas" width="1" height="1">fuck you</canvas>
+<br>
+<input type="button" id="startButton" value="START"/>
+<input type="button" id="stopButton" value="STOP"/>
+<label id="statusLabel">Lets GO</label>
+<br>
+<label>TARGET FPS:</label>
+<input type="range" id="fpsRange" name="fps" value="30" min="0" max="60" step="15"/>
+<label id="currentFpsLabel">30</label>
+<br>
+<label>DRAW EVERY:</label>
+<input type="range" id="sortSpeedRange" name="speed" value="10" min="1" max="500"/>
+<label id="currentSortSpeedLabel">10</label>
+<script>
+
+    class Colour {
+
+        constructor(red, green, blue) {
+            this.red = Colour.to255Range(red);
+            this.green = Colour.to255Range(green);
+            this.blue = Colour.to255Range(blue);
+            this.hue = Colour.getWikiHue(this);
+        }
+
+        static to255Range(n) {
+            return Math.max(Math.min(n, 255), 0);
+        }
+
+        static randomColour() {
+            function pizde() {
+                return Math.ceil(Math.random() * 255);
+            }
+            return new Colour(pizde(), pizde(), pizde());
+        }
+
+
+        static getWikiHue(colour) {
+            const R = colour.red;
+            const G = colour.green;
+            const B = colour.blue;
+
+            if (R >= G && G >= B) {
+                //return 60 * (G - B) / (R - B);
+                return 60 * G / R;
+            }
+            if (G > R && R >= B) {
+                return 60 * (2 - (R - B) / (G - B));
+            }
+            if (G >= B && B > R) {
+                return 60 * (2 + (B - R) / (G - R));
+            }
+            if (B > G && G > R) {
+                return 60 * (4 - (G - R) / (B - R));
+            }
+            if (B > R && R >= G) {
+                return 60 * (4 + (R - G) / (B - G));
+            }
+            if (R >= B && B > G) {
+                return 60 * (6 - (B - G) / (R - G));
+            }
+        }
+
+        equals(other) {
+            return this.red == other.red && this.green == other.green && this.blue == other.blue;
+
+        }
+
+        compare(other) {
+            return this.hue - other.hue;
+        }
+    }
+
+
+    class BubbleSorter {
+        constructor(arrayToSort, comparator) {
+            this.arr = arrayToSort;
+            this.patientInd = 0;
+            this.comparator = comparator;
+        }
+
+        oneTick() {
+            for (let i = this.patientInd + 1; i < this.arr.length - 1; i++) {
+                let patient = this.arr[this.patientInd];
+                let toComp = this.arr[i + 1];
+                if (this.comparator(patient, toComp) > 0) {
+                    this.arr[this.patientInd] = toComp;
+                    this.arr[i + 1] = patient;
+                    return true;
+                }
+            }
+            this.patientInd += 1;
+            return this.patientInd == this.arr.length - 1;
+        }
+    }
+
+    class InsertionSorter {
+        constructor(arrayToSort, comparator) {
+            this.arr = arrayToSort;
+            this.patientInd = -1;
+            this.comparator = comparator;
+        }
+
+        oneTick() {
+            for (let i = this.patientInd + 1; i < this.arr.length - 1; i++) {
+                let patient = this.arr[i];
+                let toComp = this.arr[i + 1];
+                if (this.comparator(patient, toComp) > 0) {
+                    this.arr[i] = toComp;
+                    this.arr[i + 1] = patient;
+                    return true;
+                }
+            }
+            this.patientInd += 1;
+            return this.patientInd == this.arr.length - 1;
+        }
+    }
+
+
+    class Slice {
+        constructor(low, high) {
+            this.low = low;
+            this.high = high;
+            this.i = null;
+            this.j = null;
+            this.midElem = null;
+        }
+    }
+
+    class QuickSorter {
+
+        constructor(arrayToSort, comparator) {
+            this.arr = arrayToSort;
+            this.comparator = comparator;
+            this.slicesToSort = [new Slice(0, arrayToSort.length - 1)];
+        }
+
+        oneTick() {
+            while (this.slicesToSort.length > 0) {
+                let slice = this.slicesToSort.pop();
+                if (slice.low < slice.high) {
+                    let midElem = slice.midElem || this.arr[Math.floor(slice.low + (slice.high - slice.low) / 2)];
+                    slice.midElem = midElem;
+                    let i = slice.i || slice.low;
+                    let j = slice.j || slice.high;
+                    while (i <= j) {
+                        while (this.comparator(this.arr[i], midElem) < 0) {
+                            i++;
+                        }
+                        while (this.comparator(this.arr[j], midElem) > 0) {
+                            j--;
+                        }
+                        if (i <= j) {
+                            let tmp = this.arr[i];
+                            this.arr[i] = this.arr[j];
+                            this.arr[j] = tmp;
+                            slice.i = i + 1;
+                            slice.j = j - 1;
+                            this.slicesToSort.push(slice);
+                            return true;
+                        }
+                    }
+                    if (slice.low < j) {
+                        this.slicesToSort.push(new Slice(slice.low, j));
+                    }
+                    if (slice.high > i) {
+                        this.slicesToSort.push(new Slice(i, slice.high));
+                    }
+                    //shuffle(this.slicesToSort)
+                }
+            }
+            return false;
+        }
+    }
+
+    class PartForMerge {
+        constructor(arr, i, j) {
+            this.arr = arr;
+            this.i = i;
+            this.j = j;
+            this.localPointer = 0;
+        }
+    }
+
+    class MergeSorter {
+        constructor(arrayToSort, comparator) {
+            this.arr = arrayToSort;
+            this.comparator = comparator;
+            this.partsToMerge = []
+            this.mergeInProgress = false;
+            this.arrPointer = null;
+            for (let i = 0; i < this.arr.length; i++) {
+                this.partsToMerge.push(new PartForMerge([this.arr[i]], i, i));
+            }
+        }
+
+        oneTick() {
+            while (this.partsToMerge.length > 1) {
+                let part1 = this.partsToMerge.pop();
+                let part2 = this.partsToMerge.pop();
+                if (!this.mergeInProgress) {
+                    this.arrPointer = Math.min(part1.i, part2.i);
+                    this.mergeInProgress = true;
+                }
+                let patient1 = part1.arr[part1.localPointer];
+                let patient2 = part2.arr[part2.localPointer];
+
+                if (!patient1 && !patient2) {
+                    this.mergeInProgress = false;
+                    let low = Math.min(part1.i, part2.i);
+                    let high = low + part1.arr.length + part2.arr.length
+                    this.partsToMerge.unshift(new PartForMerge(this.arr.slice(low, high), low, high));
+                } else if (!patient1 && patient2) {
+                    this.arr[this.arrPointer++] = patient2;
+                    part2.localPointer++;
+                    this.partsToMerge.push(part2);
+                    this.partsToMerge.push(part1);
+                    return true;
+                } else if (!patient2 && patient1) {
+                    this.arr[this.arrPointer++] = patient1;
+                    part1.localPointer++;
+                    this.partsToMerge.push(part2);
+                    this.partsToMerge.push(part1);
+                    return true;
+                } else if (this.comparator(patient1, patient2) < 0) {
+                    this.arr[this.arrPointer++] = patient1;
+                    part1.localPointer++;
+                    this.partsToMerge.push(part2);
+                    this.partsToMerge.push(part1);
+                    return true;
+                } else {
+                    this.arr[this.arrPointer++] = patient2;
+                    part2.localPointer++;
+                    this.partsToMerge.push(part2);
+                    this.partsToMerge.push(part1);
+                    return true;
+                }
+            }
+            this.partsToMerge.pop();
+            return false;
+        }
+    }
+
+    class HeapSorter {
+
+        constructor(arrayToSort, comparator) {
+               this.arr = arrayToSort;
+               this.heapPreparationDone = false;
+               this.heapSortingSwapJustDone = false;
+               this.heapSize = this.arr.length;
+               this.heapSortingI = this.arr.length - 1;
+               this.heapPreparationI = Math.floor(this.arr.length / 2)
+               this.heapNextMax = this.heapPreparationI;
+               this.comparator = comparator;
+             }
+
+        oneTick() {
+            if (!this.heapPreparationDone) {
+                if (this.heapPreparationI <= 0 && this.heapNextMax == null) {
+                    this.heapPreparationDone = true;
+                } else {
+                    if (this.heapNextMax == null) {
+                        this.heapNextMax = --this.heapPreparationI
+                    }
+                    this.heapNextMax = this.sortHeapFrom(this.arr, this.heapNextMax, this.heapSize);
+                    return true;
+                }
+            }
+            if (this.heapSortingI > 0) {
+                if (this.heapSortingSwapJustDone) {
+                    if (this.heapNextMax == null) {
+                        this.heapNextMax = 0;
+                        --this.heapSize;
+                    }
+                    this.heapNextMax = this.sortHeapFrom(this.arr, this.heapNextMax, this.heapSize);
+                    if (this.heapNextMax != null) {
+                        return true;
+                    }
+                    this.heapSortingI--;
+                    this.heapSortingSwapJustDone = false;
+                    return true;
+                } else {
+                    HeapSorter.swap(this.arr, 0, this.heapSortingI);
+                    this.heapSortingSwapJustDone = true;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        sortHeapFrom(arr, nextMax, heapLength) {
+            let left = 2 * nextMax + 1;
+            let right = 2 * nextMax + 2;
+            let max = nextMax;
+            if (left < heapLength && this.comparator(arr[left], arr[max]) > 0) {
+                max = left;
+            }
+            if (right < heapLength && this.comparator(arr[right], arr[max]) > 0) {
+                max = right;
+            }
+            if (max != nextMax) {
+                HeapSorter.swap(arr, nextMax, max);
+                return max;
+            }
+            return null;
+        }
+
+        static swap(arr, i, j) {
+           let tmp = arr[i];
+           arr[i] = arr[j];
+           arr[j] = tmp;
+        }
+    }
+
+    var arr = [1,2,3,4,5];
+    shuffle(arr);
+    var s = new HeapSorter(arr, function(n1, n2) {return n1-n2;});
+
+
+    function shuffle(a) {
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+    }
+
+    const maxColourValue = 255;
+    const maxCanvasWidth = maxColourValue * 5;
+    const documentWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+    const step = Math.max(1, Math.round(maxCanvasWidth / documentWidth));
+    const canvasWidth = Math.round(maxCanvasWidth / step)
+
+    const pizdaCanvas = document.getElementById("pizdaCanvas");
+    pizdaCanvas.width = canvasWidth
+    pizdaCanvas.height = 9 * pizdaCanvas.width / 16
+
+    const ctx = pizdaCanvas.getContext("2d");
+    const imageData = ctx.getImageData(0, 0, pizdaCanvas.width, pizdaCanvas.height);
+    const actualData = imageData.data;
+
+
+    const maxTimes = maxColourValue / step;
+
+    function applyStep(vals, steps, wasOnLims, pos) {
+        vals[pos] += steps[pos];
+        if (vals[pos] >= maxColourValue) {
+            if (wasOnLims[pos] < maxTimes) {
+                wasOnLims[pos]++;
+                steps[pos] = 0;
+            } else {
+                wasOnLims[pos] = 0;
+                steps[pos] = -step;
+            }
+        } else if (vals[pos] <= 0) {
+            if (wasOnLims[pos] < maxTimes) {
+                wasOnLims[pos]++;
+                steps[pos] = 0;
+            } else {
+                wasOnLims[pos] = 0;
+                steps[pos] = step;
+            }
+
+
+        }
+    }
+
+    const rows = pizdaCanvas.height;
+    const columns = maxTimes * 5;
+    const colourMatrix = [];
+
+    for (let i = 0; i < rows; i++) {
+        let row = [];
+        let currentSteps = [step, step, -step];
+        let currentColorVals = [maxColourValue, 0, 0];
+        let wasOnLimTimes = [0, maxTimes, maxTimes];
+        for (let j = 0; j < columns; j++) {
+            row.push(new Colour(currentColorVals[0], currentColorVals[1], currentColorVals[2]));
+            // row.push(Colour.randomColour());
+            applyStep(currentColorVals, currentSteps, wasOnLimTimes, 0);
+            applyStep(currentColorVals, currentSteps, wasOnLimTimes, 1);
+            applyStep(currentColorVals, currentSteps, wasOnLimTimes, 2);
+        }
+        colourMatrix.push(row);
+    }
+
+    console.log("TOTAL COLORS:", colourMatrix[0].length);
+    for (let i = 0; i < rows; i++) {
+        shuffle(colourMatrix[i]);
+    }
+
+    function drawColourMatrix(matrix) {
+        //console.log("DRAW!");
+        for (let i = 0; i < matrix.length; i++) {
+            let row = matrix[i];
+            for (let j = 0; j < row.length; j++) {
+                let col = row[j];
+                let offset = (i * pizdaCanvas.width) * 4 + j * 4;
+                actualData[offset] = col.red;
+                actualData[offset + 1] = col.green;
+                actualData[offset + 2] = col.blue;
+                actualData[offset + 3] = 255;
+            }
+        }
+        ctx.putImageData(imageData, 0, 0);
+
+    }
+
+    drawColourMatrix(colourMatrix);
+
+
+    let sorters = [];
+
+    for (let j = 0; j < rows / 6; j++) {
+        sorters.push(
+            new BubbleSorter(colourMatrix[j], function (c1, c2) {
+                return c1.compare(c2);
+            })
+        );
+    }
+
+    for (let j = sorters.length; j < rows / 3; j++) {
+
+        sorters.push(
+            new InsertionSorter(colourMatrix[j], function (c1, c2) {
+                return c1.compare(c2);
+            })
+        );
+    }
+
+    for (let j = sorters.length; j < 4 * rows / 6; j++) {
+
+        sorters.push(
+            new QuickSorter(colourMatrix[j], function (c1, c2) {
+                return c1.compare(c2);
+            })
+        );
+    }
+
+    for (let j = sorters.length; j < 5 * rows / 6; j++) {
+
+        sorters.push(
+            new MergeSorter(colourMatrix[j], function (c1, c2) {
+                return c1.compare(c2);
+            })
+        );
+    }
+
+        for (let j = sorters.length; j < rows; j++) {
+
+        sorters.push(
+            new HeapSorter(colourMatrix[j], function (c1, c2) {
+                return c1.compare(c2);
+            })
+        );
+    }
+
+    const statusLabel = document.getElementById("statusLabel");
+    const currentFpsLabel = document.getElementById("currentFpsLabel");
+    const currentSortSpeedLabel = document.getElementById("currentSortSpeedLabel");
+
+    let justACounter = 0;
+    let chainedTick = function () {
+        if (!sortStarted) {
+            console.log("SORT SUSPENDED");
+            stopReDraw();
+            return;
+        }
+        let somethingChanged = false;
+        for (let i = 0; i < sorters.length; i++) {
+            somethingChanged = sorters[i].oneTick() || somethingChanged;
+        }
+        if (!somethingChanged) {
+            console.log("Sorted");
+            statusLabel.innerHTML = "All Sorted";
+            stopReDraw();
+        } else {
+            justACounter++;
+            if (justACounter % sortSpeedRange.value == 0) {
+                hasSomethingToDraw = true;
+                setTimeout(chainedTick, 1500 / fpsRange.value);
+            } else {
+                chainedTick();
+            }
+
+        }
+    };
+
+    let reDrawInterval;
+    let hasSomethingToDraw = true;
+    function stopReDraw() {
+        drawColourMatrix(colourMatrix);
+        clearInterval(reDrawInterval);
+    }
+    function registerReDraw() {
+        stopReDraw();
+        let fps = fpsRange.value;
+        if (fps == 0) {
+            return;
+        }
+        let delay = 1000/fps;
+        console.log("REGISTERING REDRAW: ", fps, delay);
+        reDrawInterval = setInterval(function () {
+            if (hasSomethingToDraw) {
+                drawColourMatrix(colourMatrix);
+                hasSomethingToDraw = false;
+            }
+        }, delay);
+
+    }
+
+    let sortStarted = false;
+    const startButton = document.getElementById("startButton");
+    const stopButton = document.getElementById("stopButton");
+    const fpsRange = document.getElementById("fpsRange");
+    const sortSpeedRange = document.getElementById("sortSpeedRange");
+    startButton.onclick = function () {
+        if (sortStarted) {
+            console.log("Sort already has started");
+        } else {
+            sortStarted = true;
+            chainedTick();
+            registerReDraw();
+            console.log("sort started");
+            statusLabel.innerHTML = "Sort started"
+
+        }
+    };
+    stopButton.onclick = function () {
+        sortStarted = false;
+    };
+    fpsRange.onchange = function () {
+        console.log("fps range change", fpsRange.value);
+        currentFpsLabel.innerHTML = fpsRange.value;
+        registerReDraw();
+    };
+    sortSpeedRange.onchange = function () {
+        currentSortSpeedLabel.innerHTML = sortSpeedRange.value;
+    }
+
+
+
+
+</script>
+
+</body>
+</html>
+
