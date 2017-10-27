@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <body>
+<div id="mainBlock">
+<h1>Sorting algorithms swap comparisons</h1>
 
 <canvas id="pizdaCanvas" width="1" height="1">fuck you</canvas>
 <br>
@@ -17,7 +19,46 @@
 <label id="currentSortSpeedLabel">10</label>
 <br>
 <label id="debugLabel">debug log will be here:</label>
+</div>
 <script>
+
+    class SorterSummary {
+
+        constructor(name, constructorMethod, description) {
+            this.name = name;
+            this.constructorMethod = constructorMethod;
+            this.description = description;
+        }
+    }
+
+    const allSorters = [
+        new SorterSummary(
+            "Bubble Sort",
+             function(array, comparator) {return new BubbleSorter(array, comparator);},
+             "This is a basic bubble sort impl."),
+        new SorterSummary(
+            "Insertion Sort",
+             function(array, comparator) {return new InsertionSorter(array, comparator);},
+             "This is a basic insertion sort impl."),
+        new SorterSummary(
+            "Bubble Sort",
+             function(array, comparator) {return new BubbleSorter(array, comparator);},
+             "This is basic bubble sort impl."),
+        new SorterSummary(
+            "Merge Sort",
+             function(array, comparator) {return new MergeSorter(array, comparator);},
+             "This is a iterative version of merge sort which commits every merge result back to the source array."),
+        new SorterSummary(
+            "Heap Sort",
+             function(array, comparator) {return new HeapSorter(array, comparator);},
+             "This is a heap sort implementation.")
+    ];
+
+
+    const mainBlock = document.getElementById("mainBlock");
+
+    const maxColourValue = 255;
+
 
     class Colour {
 
@@ -75,6 +116,41 @@
             return this.hue - other.hue;
         }
     }
+
+
+    allSorters.forEach(function(ss) {
+
+        let sorterDiv = document.createElement('div');
+
+        sorterDiv.id = ss.name + "-" + ss.name;
+        let sorterName = document.createElement('h3');
+        sorterName.innerHTML = ss.name;
+        //sorterName.setAttribute('style', "align:left");
+        let sorterDescription = document.createElement('label');
+        sorterDescription.innerHTML = ss.description;
+        let br = document.createElement('br');
+
+        let sorterCanvas = document.createElement('canvas');
+        sorterCanvas.width = 320;
+        sorterCanvas.height = 320;
+        sorterCanvas.innerHTML = "There should be HTML canvas with pretty animation, but fuck you."
+
+        sorterDiv.appendChild(sorterName);
+        sorterDiv.appendChild(sorterDescription);
+        sorterDiv.appendChild(br);
+        sorterDiv.appendChild(sorterCanvas);
+        mainBlock.appendChild(sorterDiv);
+
+        let matrix = generateColourMatrix(320, 320, 1);
+        const ctx = sorterCanvas.getContext("2d");
+        const imageData = ctx.getImageData(0, 0, sorterCanvas.width, sorterCanvas.height);
+        const actualData = imageData.data;
+        drawColourMatrix(matrix, ctx, imageData, actualData, sorterCanvas.width);
+
+
+
+    });
+
 
 
     class BubbleSorter {
@@ -332,7 +408,6 @@
     const debugLabel = document.getElementById("debugLabel");
 
 
-    const maxColourValue = 255;
     const maxCanvasWidth = maxColourValue * 5;
     const documentWidth = document.documentElement.clientWidth;
     debugLabel.innerHTML += "Doc width IS: " +documentWidth;
@@ -351,9 +426,9 @@
     const actualData = imageData.data;
 
 
-    const maxTimes = maxColourValue / step;
 
-    function applyStep(vals, steps, wasOnLims, pos) {
+
+    function applyStep(vals, steps, wasOnLims, pos, step, maxTimes) {
         vals[pos] += steps[pos];
         if (vals[pos] >= maxColourValue) {
             if (wasOnLims[pos] < maxTimes) {
@@ -377,22 +452,32 @@
     }
 
     const rows = pizdaCanvas.height;
-    const columns = maxTimes * 5;
-    const colourMatrix = [];
+    const columns = (maxColourValue / step) * 5;
+    const colourMatrix = generateColourMatrix(columns, rows, step);
 
-    for (let i = 0; i < rows; i++) {
-        let row = [];
-        let currentSteps = [step, step, -step];
-        let currentColorVals = [maxColourValue, 0, 0];
-        let wasOnLimTimes = [0, maxTimes, maxTimes];
-        for (let j = 0; j < columns; j++) {
-            row.push(new Colour(currentColorVals[0], currentColorVals[1], currentColorVals[2]));
-            // row.push(Colour.randomColour());
-            applyStep(currentColorVals, currentSteps, wasOnLimTimes, 0);
-            applyStep(currentColorVals, currentSteps, wasOnLimTimes, 1);
-            applyStep(currentColorVals, currentSteps, wasOnLimTimes, 2);
+    function generateColourMatrix(width, height, step) {
+
+        const rows = height
+        const columns = width
+        const maxTimes = maxColourValue / step;
+        let colourMatrix = [];
+
+        for (let i = 0; i < rows; i++) {
+            let row = [];
+            let currentSteps = [step, step, -step];
+            let currentColorVals = [maxColourValue, 0, 0];
+            let wasOnLimTimes = [0, maxTimes, maxTimes];
+            for (let j = 0; j < columns; j++) {
+
+                row.push(new Colour(currentColorVals[0], currentColorVals[1], currentColorVals[2]));
+                // row.push(Colour.randomColour());
+                applyStep(currentColorVals, currentSteps, wasOnLimTimes, 0, step, maxTimes);
+                applyStep(currentColorVals, currentSteps, wasOnLimTimes, 1, step, maxTimes);
+                applyStep(currentColorVals, currentSteps, wasOnLimTimes, 2, step, maxTimes);
+            }
+            colourMatrix.push(row);
         }
-        colourMatrix.push(row);
+        return colourMatrix;
     }
 
     console.log("TOTAL COLORS:", colourMatrix[0].length);
@@ -400,24 +485,24 @@
         shuffle(colourMatrix[i]);
     }
 
-    function drawColourMatrix(matrix) {
+    function drawColourMatrix(matrix, canvasCtx, imageData, actualData, canvasWidth) {
         //console.log("DRAW!");
         for (let i = 0; i < matrix.length; i++) {
             let row = matrix[i];
             for (let j = 0; j < row.length; j++) {
                 let col = row[j];
-                let offset = (i * pizdaCanvas.width) * 4 + j * 4;
+                let offset = (i * canvasWidth) * 4 + j * 4;
                 actualData[offset] = col.red;
                 actualData[offset + 1] = col.green;
                 actualData[offset + 2] = col.blue;
                 actualData[offset + 3] = 255;
             }
         }
-        ctx.putImageData(imageData, 0, 0);
+        canvasCtx.putImageData(imageData, 0, 0);
 
     }
 
-    drawColourMatrix(colourMatrix);
+    drawColourMatrix(colourMatrix, ctx, imageData, actualData, pizdaCanvas.width);
 
 
     let sorters = [];
@@ -500,7 +585,7 @@
     let reDrawInterval;
     let hasSomethingToDraw = true;
     function stopReDraw() {
-        drawColourMatrix(colourMatrix);
+        drawColourMatrix(colourMatrix, ctx, imageData, actualData, pizdaCanvas.width);
         clearInterval(reDrawInterval);
     }
     function registerReDraw() {
@@ -513,7 +598,7 @@
         console.log("REGISTERING REDRAW: ", fps, delay);
         reDrawInterval = setInterval(function () {
             if (hasSomethingToDraw) {
-                drawColourMatrix(colourMatrix);
+                drawColourMatrix(colourMatrix, ctx, imageData, actualData, pizdaCanvas.width);
                 hasSomethingToDraw = false;
             }
         }, delay);
