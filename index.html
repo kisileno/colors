@@ -412,7 +412,7 @@
         const imageData = ctx.getImageData(0, 0, sorterCanvas.width, canvasHeight);
         const actualData = imageData.data;
         const targetFps = 60;
-        const redrawEvery = 10;
+        const redrawEvery = 1;
 
         function DRAW() {
             drawColourMatrix(matrix, ctx, imageData, actualData, canvasWidth);
@@ -732,7 +732,7 @@
 
     }
 
-    /*
+
     let sortStarted = false;
     const startButton = document.getElementById("startButton");
     const stopButton = document.getElementById("stopButton");
@@ -775,7 +775,7 @@
         }
     }
 
-     */
+
 </script>
 
 </body>
