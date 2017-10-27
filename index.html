@@ -31,127 +31,6 @@
         }
     }
 
-    const allSorters = [
-        new SorterSummary(
-            "Bubble Sort",
-             function(array, comparator) {return new BubbleSorter(array, comparator);},
-             "This is a basic bubble sort impl."),
-        new SorterSummary(
-            "Insertion Sort",
-             function(array, comparator) {return new InsertionSorter(array, comparator);},
-             "This is a basic insertion sort impl."),
-        new SorterSummary(
-            "Bubble Sort",
-             function(array, comparator) {return new BubbleSorter(array, comparator);},
-             "This is basic bubble sort impl."),
-        new SorterSummary(
-            "Merge Sort",
-             function(array, comparator) {return new MergeSorter(array, comparator);},
-             "This is a iterative version of merge sort which commits every merge result back to the source array."),
-        new SorterSummary(
-            "Heap Sort",
-             function(array, comparator) {return new HeapSorter(array, comparator);},
-             "This is a heap sort implementation.")
-    ];
-
-
-    const mainBlock = document.getElementById("mainBlock");
-
-    const maxColourValue = 255;
-
-
-    class Colour {
-
-        constructor(red, green, blue) {
-            this.red = Colour.to255Range(red);
-            this.green = Colour.to255Range(green);
-            this.blue = Colour.to255Range(blue);
-            this.hue = Colour.getWikiHue(this);
-        }
-
-        static to255Range(n) {
-            return Math.max(Math.min(n, 255), 0);
-        }
-
-        static randomColour() {
-            function pizde() {
-                return Math.ceil(Math.random() * 255);
-            }
-            return new Colour(pizde(), pizde(), pizde());
-        }
-
-
-        static getWikiHue(colour) {
-            const R = colour.red;
-            const G = colour.green;
-            const B = colour.blue;
-
-            if (R >= G && G >= B) {
-                //return 60 * (G - B) / (R - B);
-                return 60 * G / R;
-            }
-            if (G > R && R >= B) {
-                return 60 * (2 - (R - B) / (G - B));
-            }
-            if (G >= B && B > R) {
-                return 60 * (2 + (B - R) / (G - R));
-            }
-            if (B > G && G > R) {
-                return 60 * (4 - (G - R) / (B - R));
-            }
-            if (B > R && R >= G) {
-                return 60 * (4 + (R - G) / (B - G));
-            }
-            if (R >= B && B > G) {
-                return 60 * (6 - (B - G) / (R - G));
-            }
-        }
-
-        equals(other) {
-            return this.red == other.red && this.green == other.green && this.blue == other.blue;
-
-        }
-
-        compare(other) {
-            return this.hue - other.hue;
-        }
-    }
-
-
-    allSorters.forEach(function(ss) {
-
-        let sorterDiv = document.createElement('div');
-
-        sorterDiv.id = ss.name + "-" + ss.name;
-        let sorterName = document.createElement('h3');
-        sorterName.innerHTML = ss.name;
-        //sorterName.setAttribute('style', "align:left");
-        let sorterDescription = document.createElement('label');
-        sorterDescription.innerHTML = ss.description;
-        let br = document.createElement('br');
-
-        let sorterCanvas = document.createElement('canvas');
-        sorterCanvas.width = 320;
-        sorterCanvas.height = 320;
-        sorterCanvas.innerHTML = "There should be HTML canvas with pretty animation, but fuck you."
-
-        sorterDiv.appendChild(sorterName);
-        sorterDiv.appendChild(sorterDescription);
-        sorterDiv.appendChild(br);
-        sorterDiv.appendChild(sorterCanvas);
-        mainBlock.appendChild(sorterDiv);
-
-        let matrix = generateColourMatrix(320, 320, 1);
-        const ctx = sorterCanvas.getContext("2d");
-        const imageData = ctx.getImageData(0, 0, sorterCanvas.width, sorterCanvas.height);
-        const actualData = imageData.data;
-        drawColourMatrix(matrix, ctx, imageData, actualData, sorterCanvas.width);
-
-
-
-    });
-
-
 
     class BubbleSorter {
         constructor(arrayToSort, comparator) {
@@ -405,16 +284,223 @@
         }
     }
 
+
+    const allSorters = [
+        new SorterSummary(
+            "Bubble Sort",
+             function(array, comparator) {return new BubbleSorter(array, comparator);},
+             "This is a basic bubble sort impl."),
+        new SorterSummary(
+            "Insertion Sort",
+             function(array, comparator) {return new InsertionSorter(array, comparator);},
+             "This is a basic insertion sort impl."),
+        new SorterSummary(
+            "Merge Sort",
+             function(array, comparator) {return new MergeSorter(array, comparator);},
+             "This is a iterative version of merge sort which commits every merge result back to the source array."),
+        new SorterSummary(
+            "Heap Sort",
+             function(array, comparator) {return new HeapSorter(array, comparator);},
+             "This is a heap sort implementation.")
+    ];
+
+
+    const mainBlock = document.getElementById("mainBlock");
+
+    const maxColourValue = 255;
+    const maxCanvasWidth = maxColourValue * 5;
+    const documentWidth = document.documentElement.clientWidth;
+    const step = Math.max(1, Math.ceil(maxCanvasWidth / documentWidth));
+    const canvasWidth = Math.round(maxCanvasWidth / step)
+    const DEFAULT_COLOUR_COMP = function (c1, c2) {return c1.compare(c2);}
+
+    class Colour {
+
+        constructor(red, green, blue) {
+            this.red = Colour.to255Range(red);
+            this.green = Colour.to255Range(green);
+            this.blue = Colour.to255Range(blue);
+            this.hue = Colour.getWikiHue(this);
+        }
+
+        static to255Range(n) {
+            return Math.max(Math.min(n, 255), 0);
+        }
+
+        static randomColour() {
+            function pizde() {
+                return Math.ceil(Math.random() * 255);
+            }
+            return new Colour(pizde(), pizde(), pizde());
+        }
+
+
+        static getWikiHue(colour) {
+            const R = colour.red;
+            const G = colour.green;
+            const B = colour.blue;
+
+            if (R >= G && G >= B) {
+                //return 60 * (G - B) / (R - B);
+                return 60 * G / R;
+            }
+            if (G > R && R >= B) {
+                return 60 * (2 - (R - B) / (G - B));
+            }
+            if (G >= B && B > R) {
+                return 60 * (2 + (B - R) / (G - R));
+            }
+            if (B > G && G > R) {
+                return 60 * (4 - (G - R) / (B - R));
+            }
+            if (B > R && R >= G) {
+                return 60 * (4 + (R - G) / (B - G));
+            }
+            if (R >= B && B > G) {
+                return 60 * (6 - (B - G) / (R - G));
+            }
+        }
+
+        equals(other) {
+            return this.red == other.red && this.green == other.green && this.blue == other.blue;
+
+        }
+
+        compare(other) {
+            return this.hue - other.hue;
+        }
+    }
+
+
+    function REGISTER_ALL_THE_SHIT(sorterCanvas, constructorMethod, canvasWidth, canvasHeight, step) {
+        let matrix = generateColourMatrix(canvasWidth, canvasHeight, step);
+        let sorted = true;
+        const ctx = sorterCanvas.getContext("2d");
+        const imageData = ctx.getImageData(0, 0, sorterCanvas.width, canvasHeight);
+        const actualData = imageData.data;
+
+        function DRAW() {
+            drawColourMatrix(matrix, ctx, imageData, actualData, canvasWidth);
+        }
+
+
+        let sorters = [];
+        for (let i = 0; i < matrix.length; i++) {
+            sorters.push(constructorMethod(matrix[i], DEFAULT_COLOUR_COMP));
+        }
+
+        let justACounter = 0;
+        let chainedTick = function () {
+            if (!sortStarted) {
+                console.log("SORT SUSPENDED", sorterCanvas.id);
+                stopReDraw();
+                return;
+            }
+            let somethingChanged = false;
+            for (let i = 0; i < sorters.length; i++) {
+                somethingChanged = sorters[i].oneTick() || somethingChanged;
+            }
+            if (!somethingChanged) {
+                console.log("Sorted");
+                statusLabel.innerHTML = "All Sorted";
+                stopReDraw();
+            } else {
+                justACounter++;
+                if (justACounter % sortSpeedRange.value == 0) {
+                    hasSomethingToDraw = true;
+                    setTimeout(chainedTick, 1500 / fpsRange.value);
+                } else {
+                    chainedTick();
+                }
+
+            }
+        };
+        let reDrawInterval;
+        let hasSomethingToDraw = true;
+        function stopReDraw() {
+            drawColourMatrix(colourMatrix, ctx, imageData, actualData, pizdaCanvas.width);
+            clearInterval(reDrawInterval);
+        }
+        function registerReDraw() {
+            stopReDraw();
+            let fps = fpsRange.value;
+            if (fps == 0) {
+                return;
+            }
+            let delay = 1000/fps;
+            //console.log("REGISTERING REDRAW: ", fps, delay);
+            reDrawInterval = setInterval(function () {
+                if (hasSomethingToDraw) {
+                    DRAW();
+                    hasSomethingToDraw = false;
+                }
+            }, delay);
+
+        }
+
+
+
+        DRAW();
+        sorterCanvas.onclick = function() {
+            console.log("CANVA CLICK!!", sorterCanvas.id);
+            if (sorted) {
+                for (let i = 0; i <  matrix.length; i++) {
+                    shuffle(matrix[i]);
+                }
+                sorted = false;
+                DRAW();
+            } else if (sortStarted) {
+              sortStarted = false;
+            } else {
+              sortStarted = true;
+              chainedTick();
+              registerReDraw();
+            }
+
+        };
+    };
+
+    allSorters.forEach(function(ss) {
+
+        let sorterDiv = document.createElement('div');
+
+        sorterDiv.id = ss.name + "-" + ss.name;
+        let sorterName = document.createElement('h3');
+        sorterName.innerHTML = ss.name;
+        //sorterName.setAttribute('style', "align:left");
+        let sorterDescription = document.createElement('label');
+        sorterDescription.innerHTML = ss.description;
+        let br = document.createElement('br');
+
+        //const canvasWidth = canvasWidth;
+        const canvasHeight = canvasWidth / 2;
+        let sorterCanvas = document.createElement('canvas');
+        sorterCanvas.id = ss.name + "CanvasId";
+        sorterCanvas.width = canvasWidth;
+        sorterCanvas.height = canvasHeight;
+        sorterCanvas.innerHTML = "There should be HTML canvas with pretty animation, but fuck you."
+
+        sorterDiv.appendChild(sorterName);
+        sorterDiv.appendChild(sorterDescription);
+        sorterDiv.appendChild(br);
+        sorterDiv.appendChild(sorterCanvas);
+        mainBlock.appendChild(sorterDiv);
+
+
+
+        REGISTER_ALL_THE_SHIT(sorterCanvas, ss.constructorMethod, canvasWidth, canvasHeight, step);
+
+
+    });
+
     const debugLabel = document.getElementById("debugLabel");
 
 
-    const maxCanvasWidth = maxColourValue * 5;
-    const documentWidth = document.documentElement.clientWidth;
-    debugLabel.innerHTML += "Doc width IS: " +documentWidth;
-    const step = Math.max(1, Math.ceil(maxCanvasWidth / documentWidth));
-    debugLabel.innerHTML += " Step is: " +step;
 
-    const canvasWidth = Math.round(maxCanvasWidth / step)
+    //const documentWidth = document.documentElement.clientWidth;
+    //const step = Math.max(1, Math.ceil(maxCanvasWidth / documentWidth));
+    debugLabel.innerHTML += "Doc width IS: " +documentWidth;
+    debugLabel.innerHTML += " Step is: " +step;
     debugLabel.innerHTML += " Canvas width: " +canvasWidth;
 
     const pizdaCanvas = document.getElementById("pizdaCanvas");
