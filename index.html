@@ -2,23 +2,23 @@
 <html>
 <body>
 <div id="mainBlock">
-<h1>Sorting algorithms swap comparisons</h1>
+    <h1>Sorting algorithms swap comparisons</h1>
 
-<canvas id="pizdaCanvas" width="1" height="1">fuck you</canvas>
-<br>
-<input type="button" id="startButton" value="START"/>
-<input type="button" id="stopButton" value="STOP"/>
-<label id="statusLabel">Lets GO! Click/Tap/Lick on pic or press START button</label>
-<br>
-<label>TARGET FPS:</label>
-<input type="range" id="fpsRange" name="fps" value="30" min="0" max="60" step="15"/>
-<label id="currentFpsLabel">30</label>
-<br>
-<label>DRAW EVERY:</label>
-<input type="range" id="sortSpeedRange" name="speed" value="10" min="1" max="500"/>
-<label id="currentSortSpeedLabel">10</label>
-<br>
-<label id="debugLabel">debug log will be here:</label>
+    <canvas id="pizdaCanvas" width="1" height="1">fuck you</canvas>
+    <br>
+    <input type="button" id="startButton" value="START"/>
+    <input type="button" id="stopButton" value="STOP"/>
+    <label id="statusLabel">Lets GO! Click/Tap/Lick on pic or press START button</label>
+    <br>
+    <label>TARGET FPS:</label>
+    <input type="range" id="fpsRange" name="fps" value="30" min="0" max="60" step="15"/>
+    <label id="currentFpsLabel">30</label>
+    <br>
+    <label>DRAW EVERY:</label>
+    <input type="range" id="sortSpeedRange" name="speed" value="10" min="1" max="500"/>
+    <label id="currentSortSpeedLabel">10</label>
+    <br>
+    <label id="debugLabel">debug log will be here:</label>
 </div>
 <script>
 
@@ -35,8 +35,12 @@
     class BubbleSorter {
         constructor(arrayToSort, comparator) {
             this.arr = arrayToSort;
-            this.patientInd = 0;
             this.comparator = comparator;
+            this.reset();
+        }
+
+        reset() {
+            this.patientInd = 0;
         }
 
         oneTick() {
@@ -50,15 +54,18 @@
                 }
             }
             this.patientInd += 1;
-            return this.patientInd == this.arr.length - 1;
+            return this.patientInd === this.arr.length - 1;
         }
     }
 
     class InsertionSorter {
         constructor(arrayToSort, comparator) {
             this.arr = arrayToSort;
-            this.patientInd = -1;
             this.comparator = comparator;
+        }
+
+        reset() {
+            this.patientInd = -1;
         }
 
         oneTick() {
@@ -72,7 +79,7 @@
                 }
             }
             this.patientInd += 1;
-            return this.patientInd == this.arr.length - 1;
+            return this.patientInd === this.arr.length - 1;
         }
     }
 
@@ -92,7 +99,11 @@
         constructor(arrayToSort, comparator) {
             this.arr = arrayToSort;
             this.comparator = comparator;
-            this.slicesToSort = [new Slice(0, arrayToSort.length - 1)];
+            this.reset();
+        }
+
+        reset() {
+            this.slicesToSort = [new Slice(0, this.arr.length - 1)];
         }
 
         oneTick() {
@@ -146,13 +157,18 @@
         constructor(arrayToSort, comparator) {
             this.arr = arrayToSort;
             this.comparator = comparator;
-            this.partsToMerge = []
+            this.reset();
+        }
+
+        reset() {
+            this.partsToMerge = [];
             this.mergeInProgress = false;
             this.arrPointer = null;
             for (let i = 0; i < this.arr.length; i++) {
                 this.partsToMerge.push(new PartForMerge([this.arr[i]], i, i));
             }
         }
+
 
         oneTick() {
             while (this.partsToMerge.length > 1) {
@@ -168,7 +184,7 @@
                 if (!patient1 && !patient2) {
                     this.mergeInProgress = false;
                     let low = Math.min(part1.i, part2.i);
-                    let high = low + part1.arr.length + part2.arr.length
+                    let high = low + part1.arr.length + part2.arr.length;
                     this.partsToMerge.unshift(new PartForMerge(this.arr.slice(low, high), low, high));
                 } else if (!patient1 && patient2) {
                     this.arr[this.arrPointer++] = patient2;
@@ -204,22 +220,26 @@
     class HeapSorter {
 
         constructor(arrayToSort, comparator) {
-               this.arr = arrayToSort;
-               this.heapPreparationDone = false;
-               this.heapSortingSwapJustDone = false;
-               this.heapSize = this.arr.length;
-               this.heapSortingI = this.arr.length - 1;
-               this.heapPreparationI = Math.floor(this.arr.length / 2)
-               this.heapNextMax = this.heapPreparationI;
-               this.comparator = comparator;
-             }
+            this.arr = arrayToSort;
+            this.comparator = comparator;
+            this.reset();
+        }
+
+        reset() {
+            this.heapPreparationDone = false;
+            this.heapSortingSwapJustDone = false;
+            this.heapSize = this.arr.length;
+            this.heapSortingI = this.arr.length - 1;
+            this.heapPreparationI = Math.floor(this.arr.length / 2);
+            this.heapNextMax = this.heapPreparationI;
+        }
 
         oneTick() {
             if (!this.heapPreparationDone) {
-                if (this.heapPreparationI <= 0 && this.heapNextMax == null) {
+                if (this.heapPreparationI <= 0 && this.heapNextMax === null) {
                     this.heapPreparationDone = true;
                 } else {
-                    if (this.heapNextMax == null) {
+                    if (this.heapNextMax === null) {
                         this.heapNextMax = --this.heapPreparationI
                     }
                     this.heapNextMax = this.sortHeapFrom(this.arr, this.heapNextMax, this.heapSize);
@@ -228,12 +248,12 @@
             }
             if (this.heapSortingI > 0) {
                 if (this.heapSortingSwapJustDone) {
-                    if (this.heapNextMax == null) {
+                    if (this.heapNextMax === null) {
                         this.heapNextMax = 0;
                         --this.heapSize;
                     }
                     this.heapNextMax = this.sortHeapFrom(this.arr, this.heapNextMax, this.heapSize);
-                    if (this.heapNextMax != null) {
+                    if (this.heapNextMax !== null) {
                         return true;
                     }
                     this.heapSortingI--;
@@ -258,7 +278,7 @@
             if (right < heapLength && this.comparator(arr[right], arr[max]) > 0) {
                 max = right;
             }
-            if (max != nextMax) {
+            if (max !== nextMax) {
                 HeapSorter.swap(arr, nextMax, max);
                 return max;
             }
@@ -266,17 +286,18 @@
         }
 
         static swap(arr, i, j) {
-           let tmp = arr[i];
-           arr[i] = arr[j];
-           arr[j] = tmp;
+            let tmp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = tmp;
         }
     }
-/*
-    var arr = [1,2,3,4,5];
-    shuffle(arr);
-    var s = new HeapSorter(arr, function(n1, n2) {return n1-n2;});
 
-*/
+    /*
+        var arr = [1,2,3,4,5];
+        shuffle(arr);
+        var s = new HeapSorter(arr, function(n1, n2) {return n1-n2;});
+
+    */
     function shuffle(a) {
         for (let i = a.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -288,20 +309,28 @@
     const allSorters = [
         new SorterSummary(
             "Bubble Sort",
-             function(array, comparator) {return new BubbleSorter(array, comparator);},
-             "This is a basic bubble sort impl."),
+            function (array, comparator) {
+                return new BubbleSorter(array, comparator);
+            },
+            "This is a basic bubble sort impl."),
         new SorterSummary(
             "Insertion Sort",
-             function(array, comparator) {return new InsertionSorter(array, comparator);},
-             "This is a basic insertion sort impl."),
+            function (array, comparator) {
+                return new InsertionSorter(array, comparator);
+            },
+            "This is a basic insertion sort impl."),
         new SorterSummary(
             "Merge Sort",
-             function(array, comparator) {return new MergeSorter(array, comparator);},
-             "This is a iterative version of merge sort which commits every merge result back to the source array."),
+            function (array, comparator) {
+                return new MergeSorter(array, comparator);
+            },
+            "This is a iterative version of merge sort which commits every merge result back to the source array."),
         new SorterSummary(
             "Heap Sort",
-             function(array, comparator) {return new HeapSorter(array, comparator);},
-             "This is a heap sort implementation.")
+            function (array, comparator) {
+                return new HeapSorter(array, comparator);
+            },
+            "This is a heap sort implementation.")
     ];
 
 
@@ -311,8 +340,10 @@
     const maxCanvasWidth = maxColourValue * 5;
     const documentWidth = document.documentElement.clientWidth;
     const step = Math.max(1, Math.ceil(maxCanvasWidth / documentWidth));
-    const canvasWidth = Math.round(maxCanvasWidth / step)
-    const DEFAULT_COLOUR_COMP = function (c1, c2) {return c1.compare(c2);}
+    const canvasWidth = Math.round(maxCanvasWidth / step);
+    const DEFAULT_COLOUR_COMP = function (c1, c2) {
+        return c1.compare(c2);
+    };
 
     class Colour {
 
@@ -331,6 +362,7 @@
             function pizde() {
                 return Math.ceil(Math.random() * 255);
             }
+
             return new Colour(pizde(), pizde(), pizde());
         }
 
@@ -362,7 +394,7 @@
         }
 
         equals(other) {
-            return this.red == other.red && this.green == other.green && this.blue == other.blue;
+            return this.red === other.red && this.green === other.green && this.blue === other.blue;
 
         }
 
@@ -374,10 +406,13 @@
 
     function REGISTER_ALL_THE_SHIT(sorterCanvas, constructorMethod, canvasWidth, canvasHeight, step) {
         let matrix = generateColourMatrix(canvasWidth, canvasHeight, step);
+        matrix.id = sorterCanvas.id + " matrix";
         let sorted = true;
         const ctx = sorterCanvas.getContext("2d");
         const imageData = ctx.getImageData(0, 0, sorterCanvas.width, canvasHeight);
         const actualData = imageData.data;
+        const targetFps = 60;
+        const redrawEvery = 10;
 
         function DRAW() {
             drawColourMatrix(matrix, ctx, imageData, actualData, canvasWidth);
@@ -389,6 +424,7 @@
             sorters.push(constructorMethod(matrix[i], DEFAULT_COLOUR_COMP));
         }
 
+        let sortStarted = false;
         let justACounter = 0;
         let chainedTick = function () {
             if (!sortStarted) {
@@ -403,12 +439,14 @@
             if (!somethingChanged) {
                 console.log("Sorted");
                 statusLabel.innerHTML = "All Sorted";
+                sorted = true;
+                sortStarted = false;
                 stopReDraw();
             } else {
                 justACounter++;
-                if (justACounter % sortSpeedRange.value == 0) {
+                if (justACounter % redrawEvery == 0) {
                     hasSomethingToDraw = true;
-                    setTimeout(chainedTick, 1500 / fpsRange.value);
+                    setTimeout(chainedTick, 1500 / targetFps);
                 } else {
                     chainedTick();
                 }
@@ -417,17 +455,19 @@
         };
         let reDrawInterval;
         let hasSomethingToDraw = true;
+
         function stopReDraw() {
-            drawColourMatrix(colourMatrix, ctx, imageData, actualData, pizdaCanvas.width);
+            DRAW();
             clearInterval(reDrawInterval);
         }
+
         function registerReDraw() {
             stopReDraw();
-            let fps = fpsRange.value;
-            if (fps == 0) {
+            let fps = targetFps;
+            if (fps === 0) {
                 return;
             }
-            let delay = 1000/fps;
+            let delay = 1000 / fps;
             //console.log("REGISTERING REDRAW: ", fps, delay);
             reDrawInterval = setInterval(function () {
                 if (hasSomethingToDraw) {
@@ -439,28 +479,31 @@
         }
 
 
-
         DRAW();
-        sorterCanvas.onclick = function() {
+        sorterCanvas.onclick = function () {
             console.log("CANVA CLICK!!", sorterCanvas.id);
             if (sorted) {
-                for (let i = 0; i <  matrix.length; i++) {
+                console.log("SHUFLING", matrix.id);
+                for (let i = 0; i < matrix.length; i++) {
                     shuffle(matrix[i]);
+                    sorters[i].reset();
                 }
                 sorted = false;
                 DRAW();
             } else if (sortStarted) {
-              sortStarted = false;
+                console.log("tipa stopping sort");
+                sortStarted = false;
             } else {
-              sortStarted = true;
-              chainedTick();
-              registerReDraw();
+                console.log("starting sort");
+                sortStarted = true;
+                chainedTick();
+                registerReDraw();
             }
 
         };
     };
 
-    allSorters.forEach(function(ss) {
+    allSorters.forEach(function (ss) {
 
         let sorterDiv = document.createElement('div');
 
@@ -487,7 +530,6 @@
         mainBlock.appendChild(sorterDiv);
 
 
-
         REGISTER_ALL_THE_SHIT(sorterCanvas, ss.constructorMethod, canvasWidth, canvasHeight, step);
 
 
@@ -496,12 +538,11 @@
     const debugLabel = document.getElementById("debugLabel");
 
 
-
     //const documentWidth = document.documentElement.clientWidth;
     //const step = Math.max(1, Math.ceil(maxCanvasWidth / documentWidth));
-    debugLabel.innerHTML += "Doc width IS: " +documentWidth;
-    debugLabel.innerHTML += " Step is: " +step;
-    debugLabel.innerHTML += " Canvas width: " +canvasWidth;
+    debugLabel.innerHTML += "Doc width IS: " + documentWidth;
+    debugLabel.innerHTML += " Step is: " + step;
+    debugLabel.innerHTML += " Canvas width: " + canvasWidth;
 
     const pizdaCanvas = document.getElementById("pizdaCanvas");
     pizdaCanvas.width = canvasWidth
@@ -510,8 +551,6 @@
     const ctx = pizdaCanvas.getContext("2d");
     const imageData = ctx.getImageData(0, 0, pizdaCanvas.width, pizdaCanvas.height);
     const actualData = imageData.data;
-
-
 
 
     function applyStep(vals, steps, wasOnLims, pos, step, maxTimes) {
@@ -543,8 +582,8 @@
 
     function generateColourMatrix(width, height, step) {
 
-        const rows = height
-        const columns = width
+        const rows = height;
+        const columns = width;
         const maxTimes = maxColourValue / step;
         let colourMatrix = [];
 
@@ -572,7 +611,7 @@
     }
 
     function drawColourMatrix(matrix, canvasCtx, imageData, actualData, canvasWidth) {
-        //console.log("DRAW!");
+//        console.log("DRAW matrix.id ", matrix.id);
         for (let i = 0; i < matrix.length; i++) {
             let row = matrix[i];
             for (let j = 0; j < row.length; j++) {
@@ -628,7 +667,7 @@
         );
     }
 
-        for (let j = sorters.length; j < rows; j++) {
+    for (let j = sorters.length; j < rows; j++) {
 
         sorters.push(
             new HeapSorter(colourMatrix[j], function (c1, c2) {
@@ -670,17 +709,19 @@
 
     let reDrawInterval;
     let hasSomethingToDraw = true;
+
     function stopReDraw() {
         drawColourMatrix(colourMatrix, ctx, imageData, actualData, pizdaCanvas.width);
         clearInterval(reDrawInterval);
     }
+
     function registerReDraw() {
         stopReDraw();
         let fps = fpsRange.value;
         if (fps == 0) {
             return;
         }
-        let delay = 1000/fps;
+        let delay = 1000 / fps;
         console.log("REGISTERING REDRAW: ", fps, delay);
         reDrawInterval = setInterval(function () {
             if (hasSomethingToDraw) {
@@ -691,6 +732,7 @@
 
     }
 
+    /*
     let sortStarted = false;
     const startButton = document.getElementById("startButton");
     const stopButton = document.getElementById("stopButton");
@@ -721,7 +763,7 @@
         currentSortSpeedLabel.innerHTML = sortSpeedRange.value;
     }
 
-    pizdaCanvas.onclick = function() {
+    pizdaCanvas.onclick = function () {
         if (sortStarted) {
             sortStarted = false;
             statusLabel.innerHTML = "Paused"
@@ -733,11 +775,8 @@
         }
     }
 
-
-
-
+     */
 </script>
 
 </body>
 </html>
-
