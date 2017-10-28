@@ -2,23 +2,25 @@
 <html>
 <body>
 <div id="mainBlock">
-    <h1>Sorting algorithms swap comparisons</h1>
 
-    <canvas id="pizdaCanvas" width="1" height="1">fuck you</canvas>
-    <br>
-    <input type="button" id="startButton" value="START"/>
-    <input type="button" id="stopButton" value="STOP"/>
-    <label id="statusLabel">Lets GO! Click/Tap/Lick on pic or press START button</label>
-    <br>
-    <label>TARGET FPS:</label>
-    <input type="range" id="fpsRange" name="fps" value="30" min="0" max="60" step="15"/>
-    <label id="currentFpsLabel">30</label>
-    <br>
-    <label>DRAW EVERY:</label>
-    <input type="range" id="sortSpeedRange" name="speed" value="10" min="1" max="500"/>
-    <label id="currentSortSpeedLabel">10</label>
-    <br>
-    <label id="debugLabel">debug log will be here:</label>
+    <h1>Sorting algorithms swap comparisons</h1>
+    <div id="'deprecatedShit" style="display:none">
+        <canvas id="pizdaCanvas" width="1" height="1">fuck you</canvas>
+        <br>
+        <input type="button" id="startButton" value="START"/>
+        <input type="button" id="stopButton" value="STOP"/>
+        <label id="statusLabel">Lets GO! Click/Tap/Lick on pic or press START button</label>
+        <br>
+        <label>TARGET FPS:</label>
+        <input type="range" id="fpsRange" name="fps" value="30" min="0" max="60" step="15"/>
+        <label id="currentFpsLabel">30</label>
+        <br>
+        <label>DRAW EVERY:</label>
+        <input type="range" id="sortSpeedRange" name="speed" value="10" min="1" max="500"/>
+        <label id="currentSortSpeedLabel">10</label>
+        <br>
+        <label id="debugLabel">debug log will be here:</label>
+    </div>
 </div>
 <script>
 
@@ -324,13 +326,13 @@
             function (array, comparator) {
                 return new MergeSorter(array, comparator);
             },
-            "This is a iterative version of merge sort which commits every merge result back to the source array."),
+            "This is an iterative version of a merge sort which commits every merge result back to the source array."),
         new SorterSummary(
             "Quick Sort",
             function (array, comparator) {
                 return new QuickSorter(array, comparator);
             },
-            "This is a basic implementation of quick sort"),
+            "This is a basic implementation of the quick sort"),
         new SorterSummary(
             "Heap Sort",
             function (array, comparator) {
