@@ -326,6 +326,12 @@
             },
             "This is a iterative version of merge sort which commits every merge result back to the source array."),
         new SorterSummary(
+            "Quick Sort",
+            function (array, comparator) {
+                return new QuickSorter(array, comparator);
+            },
+            "This is a basic implementation of quick sort"),
+        new SorterSummary(
             "Heap Sort",
             function (array, comparator) {
                 return new HeapSorter(array, comparator);
@@ -408,6 +414,7 @@
         let matrix = generateColourMatrix(canvasWidth, canvasHeight, step);
         matrix.id = sorterCanvas.id + " matrix";
         let sorted = true;
+        let statusText;
         const ctx = sorterCanvas.getContext("2d");
         const imageData = ctx.getImageData(0, 0, sorterCanvas.width, canvasHeight);
         const actualData = imageData.data;
@@ -416,6 +423,17 @@
 
         function DRAW() {
             drawColourMatrix(matrix, ctx, imageData, actualData, canvasWidth);
+            if (statusText) drawStatusText(ctx, statusText, canvasWidth);
+        }
+
+        function drawStatusText(ctx, textToDraw, canvasWidth) {
+
+
+            ctx.fillStyle = "white"
+            ctx.font = "bold 50px serif ";
+            let textMeasurements = ctx.measureText(textToDraw);
+            ctx.fillText(statusText, canvasWidth - textMeasurements.width - 15, 50);
+
         }
 
 
@@ -429,6 +447,7 @@
         let chainedTick = function () {
             if (!sortStarted) {
                 console.log("SORT SUSPENDED", sorterCanvas.id);
+                statusText = "Paused";
                 stopReDraw();
                 return;
             }
@@ -438,7 +457,7 @@
             }
             if (!somethingChanged) {
                 console.log("Sorted");
-                statusLabel.innerHTML = "All Sorted";
+                statusText= "All Sorted";
                 sorted = true;
                 sortStarted = false;
                 stopReDraw();
@@ -478,28 +497,31 @@
 
         }
 
-
-        DRAW();
-        sorterCanvas.onclick = function () {
-            console.log("CANVA CLICK!!", sorterCanvas.id);
-            if (sorted) {
-                console.log("SHUFLING", matrix.id);
-                for (let i = 0; i < matrix.length; i++) {
+        function shuffleTheStuff() {
+            for (let i = 0; i < matrix.length; i++) {
                     shuffle(matrix[i]);
                     sorters[i].reset();
                 }
-                sorted = false;
+            sorted = false;
+            statusText = "Shuffled"
+        }
+        shuffleTheStuff();
+        statusText = "Click me";
+        DRAW();
+        sorterCanvas.onclick = function () {
+            if (sorted) {
+                shuffleTheStuff();
                 DRAW();
             } else if (sortStarted) {
                 console.log("tipa stopping sort");
                 sortStarted = false;
             } else {
                 console.log("starting sort");
+                statusText = "Sorting";
                 sortStarted = true;
                 chainedTick();
                 registerReDraw();
             }
-
         };
     };
 
