@@ -23,6 +23,8 @@
     </div>
 </div>
 <script>
+    let timeSpentOnActualCanvasDraw = 0;
+    let timeSpentOnCanvasDataManipulation = 0;
 
     class SorterSummary {
 
@@ -423,9 +425,18 @@
         const targetFps = 60;
         const redrawEvery = 1;
 
+        let numberOfTicks = 0;
+        let totalTimeSpent = 0;
+        let timeSpentOnDraw = 0;
+        let drawCalls = 0;
+
         function DRAW() {
+            drawCalls++;
+            let beforeDraw = new Date();
             drawColourMatrix(matrix, ctx, imageData, actualData, canvasWidth);
             if (statusText) drawStatusText(ctx, statusText, canvasWidth);
+            let afterDraw = new Date();
+            timeSpentOnDraw += (afterDraw - beforeDraw);
         }
 
         function drawStatusText(ctx, textToDraw, canvasWidth) {
@@ -451,15 +462,29 @@
                 console.log("SORT SUSPENDED", sorterCanvas.id);
                 statusText = "Paused";
                 stopReDraw();
+                console.log("number of ticks:", numberOfTicks);
+                console.log("total time: ", totalTimeSpent, totalTimeSpent/numberOfTicks);
+                console.log(" time spent on draw", timeSpentOnDraw, timeSpentOnDraw/drawCalls);
+                console.log(" time spent on CANVAS", timeSpentOnActualCanvasDraw, timeSpentOnActualCanvasDraw/drawCalls);
+                console.log(" time spent on data manipulation", timeSpentOnCanvasDataManipulation, timeSpentOnCanvasDataManipulation/drawCalls);
                 return;
             }
             let somethingChanged = false;
+            let beforeTick = new Date();
             for (let i = 0; i < sorters.length; i++) {
                 somethingChanged = sorters[i].oneTick() || somethingChanged;
             }
+            let afterTick = new Date();
+            totalTimeSpent += (afterTick - beforeTick);
+            numberOfTicks++;
             if (!somethingChanged) {
                 console.log("Sorted");
-                statusText= "All Sorted";
+                statusText= "All Sorted. DrawCalls " + drawCalls ;
+                //1627
+                console.log("number of ticks:", numberOfTicks);
+                console.log("total time: ", totalTimeSpent, totalTimeSpent/numberOfTicks);
+                console.log(" time spent on draw", timeSpentOnDraw, timeSpentOnDraw/drawCalls);
+                console.log(" time spent on CANVAS", timeSpentOnActualCanvasDraw, timeSpentOnActualCanvasDraw/drawCalls);
                 sorted = true;
                 sortStarted = false;
                 stopReDraw();
@@ -467,10 +492,12 @@
                 justACounter++;
                 if (justACounter % redrawEvery == 0) {
                     hasSomethingToDraw = true;
-                    setTimeout(chainedTick, 1500 / targetFps);
+                    //setTimeout(chainedTick, 1500 / targetFps);
+                    DRAW();
                 } else {
-                    chainedTick();
+                    //chainedTick();
                 }
+                window.requestAnimationFrame(chainedTick);
 
             }
         };
@@ -499,6 +526,14 @@
 
         }
 
+        function registerRequestFrameChainedRedraw() {
+            if (hasSomethingToDraw) {
+                DRAW();
+                hasSomethingToDraw = false;
+            }
+            window.requestAnimationFrame(registerRequestFrameChainedRedraw);
+        }
+
         function shuffleTheStuff() {
             for (let i = 0; i < matrix.length; i++) {
                     shuffle(matrix[i]);
@@ -522,7 +557,8 @@
                 statusText = "Sorting";
                 sortStarted = true;
                 chainedTick();
-                registerReDraw();
+                //registerReDraw();
+                //registerRequestFrameChainedRedraw();
             }
         };
     };
@@ -635,7 +671,19 @@
     }
 
     function drawColourMatrix(matrix, canvasCtx, imageData, actualData, canvasWidth) {
-//        console.log("DRAW matrix.id ", matrix.id);
+        let beforeManipulation = new Date();
+        //putMatrixToCanvasData(matrix, actualData, canvasWidth)
+        veryAlternativePutMatrixToCanvasData(matrix, actualData, canvasWidth)
+        let beforePut = new Date();
+        timeSpentOnCanvasDataManipulation += (beforePut - beforeManipulation);
+        canvasCtx.putImageData(imageData, 0, 0);
+        let afterPut = new Date();
+        timeSpentOnActualCanvasDraw += (afterPut - beforePut);
+
+    }
+
+    //LACK OF OPTIMISATIONS
+    function putMatrixToCanvasData(matrix, actualData, canvasWidth) {
         for (let i = 0; i < matrix.length; i++) {
             let row = matrix[i];
             for (let j = 0; j < row.length; j++) {
@@ -647,8 +695,43 @@
                 actualData[offset + 3] = 255;
             }
         }
-        canvasCtx.putImageData(imageData, 0, 0);
+    }
 
+    //LACK OF OPTIMISATIONS
+    function alternativePutMatrixToCanvasData(matrix, actualData, canvasWidth) {
+        let canvasHeight = matrix.length;
+        const numberOfPixels = actualData.length / 4;
+        for (let i = 0; i < numberOfPixels; i++) {
+            const row = Math.floor(i / canvasWidth);
+            const column = i % canvasWidth;
+            const pixel = matrix[row][column];
+            actualData[i * 4] = pixel.red;
+            actualData[i * 4 + 1] = pixel.green;
+            actualData[i * 4 + 2] = pixel.blue;
+            actualData[i * 4 + 3] = 255;
+        }
+    }
+
+    //LACK OF OPTIMISATIONS
+    function veryAlternativePutMatrixToCanvasData(matrix, actualData, canvasWidth) {
+        let canvasHeight = matrix.length;
+        const numberOfPixels = actualData.length / 4;
+        let pixelNumber = numberOfPixels - 1;
+        while (pixelNumber) {
+            const row = Math.floor(pixelNumber / canvasWidth);
+            const column = pixelNumber % canvasWidth;
+            const pixel = matrix[row][column];
+            actualData[pixelNumber * 4] = pixel.red;
+            actualData[pixelNumber * 4 + 1] = pixel.green;
+            actualData[pixelNumber * 4 + 2] = pixel.blue;
+            actualData[pixelNumber * 4 + 3] = 255;
+            pixelNumber -= 1;
+        }
+        const pixel = matrix[0][0];
+        actualData[0] = pixel.red;
+        actualData[1] = pixel.green;
+        actualData[2] = pixel.blue;
+        actualData[3] = 255;
     }
 
     drawColourMatrix(colourMatrix, ctx, imageData, actualData, pizdaCanvas.width);
