@@ -7,8 +7,70 @@
 
 </div>
 <script>
+    const ULTRA_OPTIMISATION_ENABLED = true;
     let timeSpentOnActualCanvasDraw = 0;
     let timeSpentOnCanvasDataManipulation = 0;
+
+    class AsIsArrayWrapper {
+        constructor(arrayToWrap) {
+            this.wrappedArray = arrayToWrap;
+            this.length = this.wrappedArray.length;
+        }
+
+        size() {
+            return this.length;
+        }
+
+        get(index) {
+            return this.wrappedArray[index];
+        }
+
+        set(value, index) {
+            this.wrappedArray[index] = value;
+        }
+    }
+
+    class CanvasArrayWrapper {
+        constructor(canvasDataArray, from, to) {
+            if (from < 0) {
+                console.error("fuck you 1");
+            }
+            if (to > canvasDataArray.length - 4) {
+                console.error("fuck you 2");
+            }
+            if (from > to) {
+                console.error("fuck you 3");
+            }
+            this.length = to - from;
+            if ((this.length % 4) != 0) {
+                console.error("fuck you 4");
+            }
+            this.canvasDataArray = canvasDataArray;
+            this.from = from;
+            this.to = to;
+            this.length = this.length / 4;
+        }
+
+        size() {
+             return this.length;
+        }
+
+        set(ColourValue, index) {
+            const offset = index * 4;
+            this.canvasDataArray[offset] = colourValue.red;
+            this.canvasDataArray[offset + 1] = colourValue.red;
+            this.canvasDataArray[offset + 2] = colourValue.red;
+            //this.canvasDataArray[offset + 3] = 255;
+        }
+
+        get(index) {
+            return new Colour(
+                this.canvasDataArray[offset],
+                this.canvasDataArray[offset + 1],
+                this.canvasDataArray[offset + 2]
+            );
+        }
+    }
 
     class SorterSummary {
 
@@ -21,8 +83,8 @@
 
 
     class BubbleSorter {
-        constructor(arrayToSort, comparator) {
-            this.arr = arrayToSort;
+        constructor(wrappedArrayToSort, comparator) {
+            this.arr = wrappedArrayToSort;
             this.comparator = comparator;
             this.reset();
         }
@@ -32,23 +94,23 @@
         }
 
         oneTick() {
-            for (let i = this.patientInd + 1; i < this.arr.length - 1; i++) {
-                let patient = this.arr[this.patientInd];
-                let toComp = this.arr[i + 1];
+            for (let i = this.patientInd + 1; i < this.arr.size() - 1; i++) {
+                let patient = this.arr.get(this.patientInd);
+                let toComp = this.arr.get(i + 1);
                 if (this.comparator(patient, toComp) > 0) {
-                    this.arr[this.patientInd] = toComp;
-                    this.arr[i + 1] = patient;
+                    this.arr.set(toComp, this.patientInd);
+                    this.arr.set(patient, i + 1);
                     return true;
                 }
             }
             this.patientInd += 1;
-            return this.patientInd === this.arr.length - 1;
+            return this.patientInd === this.arr.size() - 1;
         }
     }
 
     class InsertionSorter {
-        constructor(arrayToSort, comparator) {
-            this.arr = arrayToSort;
+        constructor(wrappedArrayToSort, comparator) {
+            this.arr = wrappedArrayToSort;
             this.comparator = comparator;
         }
 
@@ -57,17 +119,17 @@
         }
 
         oneTick() {
-            for (let i = this.patientInd + 1; i < this.arr.length - 1; i++) {
-                let patient = this.arr[i];
-                let toComp = this.arr[i + 1];
+            for (let i = this.patientInd + 1; i < this.arr.size() - 1; i++) {
+                let patient = this.arr.get(i);
+                let toComp = this.arr.get(i + 1);;
                 if (this.comparator(patient, toComp) > 0) {
-                    this.arr[i] = toComp;
-                    this.arr[i + 1] = patient;
+                    this.arr.set(toComp, i);
+                    this.arr.set(patient, i + 1);
                     return true;
                 }
             }
             this.patientInd += 1;
-            return this.patientInd === this.arr.length - 1;
+            return this.patientInd === this.arr.size() - 1;
         }
     }
 
@@ -84,35 +146,35 @@
 
     class QuickSorter {
 
-        constructor(arrayToSort, comparator) {
-            this.arr = arrayToSort;
+        constructor(wrappedArrayToSort, comparator) {
+            this.arr = wrappedArrayToSort;
             this.comparator = comparator;
             this.reset();
         }
 
         reset() {
-            this.slicesToSort = [new Slice(0, this.arr.length - 1)];
+            this.slicesToSort = [new Slice(0, this.arr.size() - 1)];
         }
 
         oneTick() {
             while (this.slicesToSort.length > 0) {
                 let slice = this.slicesToSort.pop();
                 if (slice.low < slice.high) {
-                    let midElem = slice.midElem || this.arr[Math.floor(slice.low + (slice.high - slice.low) / 2)];
+                    let midElem = slice.midElem || this.arr.get(Math.floor(slice.low + (slice.high - slice.low) / 2));
                     slice.midElem = midElem;
                     let i = slice.i || slice.low;
                     let j = slice.j || slice.high;
                     while (i <= j) {
-                        while (this.comparator(this.arr[i], midElem) < 0) {
+                        while (this.comparator(this.arr.get(i), midElem) < 0) {
                             i++;
                         }
-                        while (this.comparator(this.arr[j], midElem) > 0) {
+                        while (this.comparator(this.arr.get(j), midElem) > 0) {
                             j--;
                         }
                         if (i <= j) {
-                            let tmp = this.arr[i];
-                            this.arr[i] = this.arr[j];
-                            this.arr[j] = tmp;
+                            let tmp = this.arr.get(i);
+                            this.arr.set(this.arr.get(j), i);
+                            this.arr.set(tmp, j);
                             slice.i = i + 1;
                             slice.j = j - 1;
                             this.slicesToSort.push(slice);
@@ -132,6 +194,8 @@
         }
     }
 
+
+//  CURRENTLY MERGE SORT IS NOT WORKING;
     class PartForMerge {
         constructor(arr, i, j) {
             this.arr = arr;
@@ -142,8 +206,8 @@
     }
 
     class MergeSorter {
-        constructor(arrayToSort, comparator) {
-            this.arr = arrayToSort;
+        constructor(wrappedArrayToSort, comparator) {
+            this.arr = wrappedArrayToSort;
             this.comparator = comparator;
             this.reset();
         }
@@ -152,9 +216,18 @@
             this.partsToMerge = [];
             this.mergeInProgress = false;
             this.arrPointer = null;
-            for (let i = 0; i < this.arr.length; i++) {
-                this.partsToMerge.push(new PartForMerge([this.arr[i]], i, i));
+            for (let i = 0; i < this.arr.size(); i++) {
+                this.partsToMerge.push(new PartForMerge([this.arr.get(i)], i, i));
             }
+        }
+
+        getASlice(wrappedArr, from, to) {
+            const res = [];
+            const bound = Math.min(wrappedArr.size(), to);
+            for (let i = 0; i < bound; i++) {
+                res.push(wrappedArr.get(i));
+            }
+            return res;
         }
 
 
@@ -173,27 +246,27 @@
                     this.mergeInProgress = false;
                     let low = Math.min(part1.i, part2.i);
                     let high = low + part1.arr.length + part2.arr.length;
-                    this.partsToMerge.unshift(new PartForMerge(this.arr.slice(low, high), low, high));
+                    this.partsToMerge.unshift(new PartForMerge(this.getASlice(this.arr, low, high), low, high));
                 } else if (!patient1 && patient2) {
-                    this.arr[this.arrPointer++] = patient2;
+                    this.arr.set(patient2, this.arrPointer++);
                     part2.localPointer++;
                     this.partsToMerge.push(part2);
                     this.partsToMerge.push(part1);
                     return true;
                 } else if (!patient2 && patient1) {
-                    this.arr[this.arrPointer++] = patient1;
+                    this.arr.set(patient1, this.arrPointer++);
                     part1.localPointer++;
                     this.partsToMerge.push(part2);
                     this.partsToMerge.push(part1);
                     return true;
                 } else if (this.comparator(patient1, patient2) < 0) {
-                    this.arr[this.arrPointer++] = patient1;
+                    this.arr.set(patient1, this.arrPointer++);
                     part1.localPointer++;
                     this.partsToMerge.push(part2);
                     this.partsToMerge.push(part1);
                     return true;
                 } else {
-                    this.arr[this.arrPointer++] = patient2;
+                    this.arr.set(patient2, this.arrPointer++);
                     part2.localPointer++;
                     this.partsToMerge.push(part2);
                     this.partsToMerge.push(part1);
@@ -205,10 +278,11 @@
         }
     }
 
+
     class HeapSorter {
 
-        constructor(arrayToSort, comparator) {
-            this.arr = arrayToSort;
+        constructor(wrappedArrayToSort, comparator) {
+            this.arr = wrappedArrayToSort;
             this.comparator = comparator;
             this.reset();
         }
@@ -216,9 +290,9 @@
         reset() {
             this.heapPreparationDone = false;
             this.heapSortingSwapJustDone = false;
-            this.heapSize = this.arr.length;
-            this.heapSortingI = this.arr.length - 1;
-            this.heapPreparationI = Math.floor(this.arr.length / 2);
+            this.heapSize = this.arr.size();
+            this.heapSortingI = this.arr.size() - 1;
+            this.heapPreparationI = Math.floor(this.arr.size() / 2);
             this.heapNextMax = this.heapPreparationI;
         }
 
@@ -260,10 +334,10 @@
             let left = 2 * nextMax + 1;
             let right = 2 * nextMax + 2;
             let max = nextMax;
-            if (left < heapLength && this.comparator(arr[left], arr[max]) > 0) {
+            if (left < heapLength && this.comparator(arr.get(left), arr.get(max)) > 0) {
                 max = left;
             }
-            if (right < heapLength && this.comparator(arr[right], arr[max]) > 0) {
+            if (right < heapLength && this.comparator(arr.get(right), arr.get(max)) > 0) {
                 max = right;
             }
             if (max !== nextMax) {
@@ -274,9 +348,9 @@
         }
 
         static swap(arr, i, j) {
-            let tmp = arr[i];
-            arr[i] = arr[j];
-            arr[j] = tmp;
+            let tmp = arr.get(i);
+            arr.set(arr.get(j), i);
+            arr.set(tmp, j);
         }
     }
 
@@ -307,12 +381,14 @@
                 return new InsertionSorter(array, comparator);
             },
             "This is a basic insertion sort impl."),
-        new SorterSummary(
-            "Merge Sort",
-            function (array, comparator) {
-                return new MergeSorter(array, comparator);
-            },
-            "This is an iterative version of a merge sort which commits every merge result back to the source array."),
+
+        // SHOULD BE RE WRITTENT
+        //new SorterSummary(
+        //    "Merge Sort",
+        //    function (array, comparator) {
+        //        return new MergeSorter(array, comparator);
+        //    },
+        //    "This is an iterative version of a merge sort which commits every merge result back to the source array."),
         new SorterSummary(
             "Quick Sort",
             function (array, comparator) {
@@ -436,7 +512,7 @@
 
         let sorters = [];
         for (let i = 0; i < matrix.length; i++) {
-            sorters.push(constructorMethod(matrix[i], DEFAULT_COLOUR_COMP));
+            sorters.push(constructorMethod(new AsIsArrayWrapper(matrix[i]), DEFAULT_COLOUR_COMP));
         }
 
         let sortStarted = false;
