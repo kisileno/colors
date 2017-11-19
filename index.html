@@ -4,23 +4,7 @@
 <div id="mainBlock">
 
     <h1>Sorting algorithms swap comparisons</h1>
-    <div id="'deprecatedShit" style="display:none">
-        <canvas id="pizdaCanvas" width="1" height="1">fuck you</canvas>
-        <br>
-        <input type="button" id="startButton" value="START"/>
-        <input type="button" id="stopButton" value="STOP"/>
-        <label id="statusLabel">Lets GO! Click/Tap/Lick on pic or press START button</label>
-        <br>
-        <label>TARGET FPS:</label>
-        <input type="range" id="fpsRange" name="fps" value="30" min="0" max="60" step="15"/>
-        <label id="currentFpsLabel">30</label>
-        <br>
-        <label>DRAW EVERY:</label>
-        <input type="range" id="sortSpeedRange" name="speed" value="10" min="1" max="500"/>
-        <label id="currentSortSpeedLabel">10</label>
-        <br>
-        <label id="debugLabel">debug log will be here:</label>
-    </div>
+
 </div>
 <script>
     let timeSpentOnActualCanvasDraw = 0;
@@ -595,23 +579,7 @@
 
     });
 
-    const debugLabel = document.getElementById("debugLabel");
-
-
-    //const documentWidth = document.documentElement.clientWidth;
-    //const step = Math.max(1, Math.ceil(maxCanvasWidth / documentWidth));
-    debugLabel.innerHTML += "Doc width IS: " + documentWidth;
-    debugLabel.innerHTML += " Step is: " + step;
-    debugLabel.innerHTML += " Canvas width: " + canvasWidth;
-
-    const pizdaCanvas = document.getElementById("pizdaCanvas");
-    pizdaCanvas.width = canvasWidth
-    pizdaCanvas.height = 9 * pizdaCanvas.width / 16
-
-    const ctx = pizdaCanvas.getContext("2d");
-    const imageData = ctx.getImageData(0, 0, pizdaCanvas.width, pizdaCanvas.height);
-    const actualData = imageData.data;
-
+   
 
     function applyStep(vals, steps, wasOnLims, pos, step, maxTimes) {
         vals[pos] += steps[pos];
@@ -636,10 +604,6 @@
         }
     }
 
-    const rows = pizdaCanvas.height;
-    const columns = (maxColourValue / step) * 5;
-    const colourMatrix = generateColourMatrix(columns, rows, step);
-
     function generateColourMatrix(width, height, step) {
 
         const rows = height;
@@ -663,11 +627,6 @@
             colourMatrix.push(row);
         }
         return colourMatrix;
-    }
-
-    console.log("TOTAL COLORS:", colourMatrix[0].length);
-    for (let i = 0; i < rows; i++) {
-        shuffle(colourMatrix[i]);
     }
 
     function drawColourMatrix(matrix, canvasCtx, imageData, actualData, canvasWidth) {
@@ -734,153 +693,6 @@
         actualData[3] = 255;
     }
 
-    drawColourMatrix(colourMatrix, ctx, imageData, actualData, pizdaCanvas.width);
-
-
-    let sorters = [];
-
-    for (let j = 0; j < rows / 6; j++) {
-        sorters.push(
-            new BubbleSorter(colourMatrix[j], function (c1, c2) {
-                return c1.compare(c2);
-            })
-        );
-    }
-
-    for (let j = sorters.length; j < rows / 3; j++) {
-
-        sorters.push(
-            new InsertionSorter(colourMatrix[j], function (c1, c2) {
-                return c1.compare(c2);
-            })
-        );
-    }
-
-    for (let j = sorters.length; j < 4 * rows / 6; j++) {
-
-        sorters.push(
-            new QuickSorter(colourMatrix[j], function (c1, c2) {
-                return c1.compare(c2);
-            })
-        );
-    }
-
-    for (let j = sorters.length; j < 5 * rows / 6; j++) {
-
-        sorters.push(
-            new MergeSorter(colourMatrix[j], function (c1, c2) {
-                return c1.compare(c2);
-            })
-        );
-    }
-
-    for (let j = sorters.length; j < rows; j++) {
-
-        sorters.push(
-            new HeapSorter(colourMatrix[j], function (c1, c2) {
-                return c1.compare(c2);
-            })
-        );
-    }
-
-    const statusLabel = document.getElementById("statusLabel");
-    const currentFpsLabel = document.getElementById("currentFpsLabel");
-    const currentSortSpeedLabel = document.getElementById("currentSortSpeedLabel");
-
-    let justACounter = 0;
-    let chainedTick = function () {
-        if (!sortStarted) {
-            console.log("SORT SUSPENDED");
-            stopReDraw();
-            return;
-        }
-        let somethingChanged = false;
-        for (let i = 0; i < sorters.length; i++) {
-            somethingChanged = sorters[i].oneTick() || somethingChanged;
-        }
-        if (!somethingChanged) {
-            console.log("Sorted");
-            statusLabel.innerHTML = "All Sorted";
-            stopReDraw();
-        } else {
-            justACounter++;
-            if (justACounter % sortSpeedRange.value == 0) {
-                hasSomethingToDraw = true;
-                setTimeout(chainedTick, 1500 / fpsRange.value);
-            } else {
-                chainedTick();
-            }
-
-        }
-    };
-
-    let reDrawInterval;
-    let hasSomethingToDraw = true;
-
-    function stopReDraw() {
-        drawColourMatrix(colourMatrix, ctx, imageData, actualData, pizdaCanvas.width);
-        clearInterval(reDrawInterval);
-    }
-
-    function registerReDraw() {
-        stopReDraw();
-        let fps = fpsRange.value;
-        if (fps == 0) {
-            return;
-        }
-        let delay = 1000 / fps;
-        console.log("REGISTERING REDRAW: ", fps, delay);
-        reDrawInterval = setInterval(function () {
-            if (hasSomethingToDraw) {
-                drawColourMatrix(colourMatrix, ctx, imageData, actualData, pizdaCanvas.width);
-                hasSomethingToDraw = false;
-            }
-        }, delay);
-
-    }
-
-
-    let sortStarted = false;
-    const startButton = document.getElementById("startButton");
-    const stopButton = document.getElementById("stopButton");
-    const fpsRange = document.getElementById("fpsRange");
-    const sortSpeedRange = document.getElementById("sortSpeedRange");
-    startButton.onclick = function () {
-        if (sortStarted) {
-            statusLabel.innerHTML = "Cmon, I am already sorting"
-        } else {
-            sortStarted = true;
-            chainedTick();
-            registerReDraw();
-            statusLabel.innerHTML = "Sorting"
-
-        }
-    };
-    stopButton.onclick = function () {
-        sortStarted = false;
-        statusLabel.innerHTML = "Paused"
-
-    };
-    fpsRange.onchange = function () {
-        console.log("fps range change", fpsRange.value);
-        currentFpsLabel.innerHTML = fpsRange.value;
-        registerReDraw();
-    };
-    sortSpeedRange.onchange = function () {
-        currentSortSpeedLabel.innerHTML = sortSpeedRange.value;
-    }
-
-    pizdaCanvas.onclick = function () {
-        if (sortStarted) {
-            sortStarted = false;
-            statusLabel.innerHTML = "Paused"
-        } else {
-            sortStarted = true;
-            chainedTick();
-            registerReDraw();
-            statusLabel.innerHTML = "Sorting"
-        }
-    }
 
 
 </script>
