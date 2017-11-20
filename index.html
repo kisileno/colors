@@ -7,9 +7,11 @@
 
 </div>
 <script>
-    const ULTRA_OPTIMISATION_ENABLED = true;
     let timeSpentOnActualCanvasDraw = 0;
     let timeSpentOnCanvasDataManipulation = 0;
+
+    const GLOBAL_COLOUR_MAP = [];
+    let globalMapBuilt = false;
 
     class AsIsArrayWrapper {
         constructor(arrayToWrap) {
@@ -60,16 +62,15 @@
             this.canvasDataArray[offset] = colourValue.red;
             this.canvasDataArray[offset + 1] = colourValue.green;
             this.canvasDataArray[offset + 2] = colourValue.blue;
-            this.canvasDataArray[offset + 3] = 255;
+            //this.canvasDataArray[offset + 3] = 255;
         }
 
         get(index) {
             const offset = this.from + index * 4;
-            return new Colour(
-                this.canvasDataArray[offset],
-                this.canvasDataArray[offset + 1],
-                this.canvasDataArray[offset + 2]
-            );
+            const red = this.canvasDataArray[offset];
+            const green = this.canvasDataArray[offset + 1];
+            const blue = this.canvasDataArray[offset + 2];
+            return GLOBAL_COLOUR_MAP[red][green][blue];
         }
     }
 
@@ -477,6 +478,7 @@
 
     function REGISTER_ALL_THE_SHIT(sorterCanvas, constructorMethod, canvasWidth, canvasHeight, step) {
         let matrix = generateColourMatrix(canvasWidth, canvasHeight, step);
+        cacheColourObjects(matrix[0]);
         matrix.id = sorterCanvas.id + " matrix";
         let sorted = true;
         let statusText;
@@ -521,11 +523,10 @@
         let justACounter = 0;
         let chainedTick = function () {
             if (!sortStarted) {
-                console.log("SORT SUSPENDED", sorterCanvas.id);
                 statusText = "Paused";
                 stopReDraw();
                 console.log("number of ticks:", numberOfTicks);
-                console.log("total time: ", totalTimeSpent, totalTimeSpent/numberOfTicks);
+                console.log("time spent on tick", totalTimeSpent, numberOfTicks, totalTimeSpent/numberOfTicks);
                 console.log("time spent on draw", timeSpentOnDraw, timeSpentOnDraw/drawCalls);
                 console.log("time spent on CANVAS", timeSpentOnActualCanvasDraw, timeSpentOnActualCanvasDraw/drawCalls);
                 console.log("time spent on data manipulation", timeSpentOnCanvasDataManipulation, timeSpentOnCanvasDataManipulation/drawCalls);
@@ -542,11 +543,10 @@
             if (!somethingChanged) {
                 console.log("Sorted");
                 statusText= "All Sorted. DrawCalls " + drawCalls ;
-                //1627
                 console.log("number of ticks:", numberOfTicks);
                 console.log("total time: ", totalTimeSpent, totalTimeSpent/numberOfTicks);
-                console.log(" time spent on draw", timeSpentOnDraw, timeSpentOnDraw/drawCalls);
-                console.log(" time spent on CANVAS", timeSpentOnActualCanvasDraw, timeSpentOnActualCanvasDraw/drawCalls);
+                console.log("time spent on draw", timeSpentOnDraw, timeSpentOnDraw/drawCalls);
+                console.log("time spent on CANVAS", timeSpentOnActualCanvasDraw, timeSpentOnActualCanvasDraw/drawCalls);
                 sorted = true;
                 sortStarted = false;
                 stopReDraw();
@@ -613,15 +613,12 @@
                 shuffleTheStuff();
                 DRAW();
             } else if (sortStarted) {
-                console.log("tipa stopping sort");
                 sortStarted = false;
             } else {
                 console.log("starting sort");
                 statusText = "Sorting";
                 sortStarted = true;
                 chainedTick();
-                //registerReDraw();
-                //registerRequestFrameChainedRedraw();
             }
         };
     };
@@ -706,6 +703,23 @@
             colourMatrix.push(row);
         }
         return colourMatrix;
+    }
+
+    function cacheColourObjects(colours) {
+        if (!globalMapBuilt) {
+            for (let i = 0; i < colours.length; i++) {
+                const colour = colours[i];
+                //GLOBAL_COLOUR_MAP[255 * 255 * colour.red + 255 * colour.green + colour.blue] = colour;
+                if (!GLOBAL_COLOUR_MAP[colour.red]) {
+                    GLOBAL_COLOUR_MAP[colour.red] = [];
+                }
+                if (!GLOBAL_COLOUR_MAP[colour.red][colour.green]) {
+                    GLOBAL_COLOUR_MAP[colour.red][colour.green] = [];
+                }
+                GLOBAL_COLOUR_MAP[colour.red][colour.green][colour.blue] = colour;
+            }
+            globalMapBuilt = true;
+        }
     }
 
     function drawColourMatrix(matrix, canvasCtx, imageData, actualData, canvasWidth) {
