@@ -31,7 +31,7 @@
     }
 
     class CanvasArrayWrapper {
-        constructor(canvasDataArray, from, to) {
+        constructor(canvasDataArray, from, to, i) {
             if (from < 0) {
                 console.error("fuck you 1");
             }
@@ -48,22 +48,23 @@
             this.canvasDataArray = canvasDataArray;
             this.from = from;
             this.to = to;
-            this.length = this.length / 4;
+            this.length = this.length / 4 + 1;
         }
 
         size() {
              return this.length;
         }
 
-        set(ColourValue, index) {
-            const offset = index * 4;
+        set(colourValue, index) {
+            const offset = this.from + index * 4;
             this.canvasDataArray[offset] = colourValue.red;
-            this.canvasDataArray[offset + 1] = colourValue.red;
-            this.canvasDataArray[offset + 2] = colourValue.red;
-            //this.canvasDataArray[offset + 3] = 255;
+            this.canvasDataArray[offset + 1] = colourValue.green;
+            this.canvasDataArray[offset + 2] = colourValue.blue;
+            this.canvasDataArray[offset + 3] = 255;
         }
 
         get(index) {
+            const offset = this.from + index * 4;
             return new Colour(
                 this.canvasDataArray[offset],
                 this.canvasDataArray[offset + 1],
@@ -512,7 +513,8 @@
 
         let sorters = [];
         for (let i = 0; i < matrix.length; i++) {
-            sorters.push(constructorMethod(new AsIsArrayWrapper(matrix[i]), DEFAULT_COLOUR_COMP));
+            //sorters.push(constructorMethod(new AsIsArrayWrapper(matrix[i]), DEFAULT_COLOUR_COMP));
+            sorters.push(constructorMethod(new CanvasArrayWrapper(actualData, 4 * i * canvasWidth, 4* i * canvasWidth + canvasWidth * 4 - 4), DEFAULT_COLOUR_COMP));
         }
 
         let sortStarted = false;
@@ -524,9 +526,9 @@
                 stopReDraw();
                 console.log("number of ticks:", numberOfTicks);
                 console.log("total time: ", totalTimeSpent, totalTimeSpent/numberOfTicks);
-                console.log(" time spent on draw", timeSpentOnDraw, timeSpentOnDraw/drawCalls);
-                console.log(" time spent on CANVAS", timeSpentOnActualCanvasDraw, timeSpentOnActualCanvasDraw/drawCalls);
-                console.log(" time spent on data manipulation", timeSpentOnCanvasDataManipulation, timeSpentOnCanvasDataManipulation/drawCalls);
+                console.log("time spent on draw", timeSpentOnDraw, timeSpentOnDraw/drawCalls);
+                console.log("time spent on CANVAS", timeSpentOnActualCanvasDraw, timeSpentOnActualCanvasDraw/drawCalls);
+                console.log("time spent on data manipulation", timeSpentOnCanvasDataManipulation, timeSpentOnCanvasDataManipulation/drawCalls);
                 return;
             }
             let somethingChanged = false;
@@ -604,6 +606,7 @@
         }
         shuffleTheStuff();
         statusText = "Click me";
+        putMatrixToCanvasData(matrix, actualData, canvasWidth);
         DRAW();
         sorterCanvas.onclick = function () {
             if (sorted) {
@@ -636,12 +639,12 @@
         let br = document.createElement('br');
 
         //const canvasWidth = canvasWidth;
-        const canvasHeight = canvasWidth / 2;
+        const canvasHeight = Math.ceil(canvasWidth / 2);
         let sorterCanvas = document.createElement('canvas');
         sorterCanvas.id = ss.name + "CanvasId";
         sorterCanvas.width = canvasWidth;
         sorterCanvas.height = canvasHeight;
-        sorterCanvas.innerHTML = "There should be HTML canvas with pretty animation, but fuck you."
+        sorterCanvas.innerHTML = "There should be HTML canvas with a pretty animation, but fuck you."
 
         sorterDiv.appendChild(sorterName);
         sorterDiv.appendChild(sorterDescription);
@@ -708,7 +711,7 @@
     function drawColourMatrix(matrix, canvasCtx, imageData, actualData, canvasWidth) {
         let beforeManipulation = new Date();
         //putMatrixToCanvasData(matrix, actualData, canvasWidth)
-        veryAlternativePutMatrixToCanvasData(matrix, actualData, canvasWidth)
+        //veryAlternativePutMatrixToCanvasData(matrix, actualData, canvasWidth)
         let beforePut = new Date();
         timeSpentOnCanvasDataManipulation += (beforePut - beforeManipulation);
         canvasCtx.putImageData(imageData, 0, 0);
