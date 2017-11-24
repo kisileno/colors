@@ -381,7 +381,7 @@
             function (array, comparator) {
                 return new MergeSorter(array, comparator);
             },
-            "This is a strage version of a merge sort which commits every merge result back to the source array."),
+            "This is a strange version of a merge sort which commits every merge result back to the source array."),
         new SorterSummary(
             "Quick Sort",
             function (array, comparator) {
@@ -603,6 +603,7 @@
         sorterCanvas.onclick = function () {
             if (sorted) {
                 shuffleTheStuff();
+                putMatrixToCanvasData(matrix, actualData, canvasWidth);
                 DRAW();
             } else if (sortStarted) {
                 sortStarted = false;
