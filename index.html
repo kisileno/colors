@@ -54,7 +54,7 @@
         }
 
         size() {
-             return this.length;
+            return this.length;
         }
 
         set(colourValue, index) {
@@ -123,7 +123,8 @@
         oneTick() {
             for (let i = this.patientInd + 1; i < this.arr.size() - 1; i++) {
                 let patient = this.arr.get(i);
-                let toComp = this.arr.get(i + 1);;
+                let toComp = this.arr.get(i + 1);
+                ;
                 if (this.comparator(patient, toComp) > 0) {
                     this.arr.set(toComp, i);
                     this.arr.set(patient, i + 1);
@@ -197,7 +198,7 @@
     }
 
 
-//  CURRENTLY MERGE SORT IS NOT WORKING;
+    //  CURRENTLY MERGE SORT IS NOT WORKING;
     class PartForMerge {
         constructor(arr, i, j) {
             this.arr = arr;
@@ -516,7 +517,7 @@
         let sorters = [];
         for (let i = 0; i < matrix.length; i++) {
             //sorters.push(constructorMethod(new AsIsArrayWrapper(matrix[i]), DEFAULT_COLOUR_COMP));
-            sorters.push(constructorMethod(new CanvasArrayWrapper(actualData, 4 * i * canvasWidth, 4* i * canvasWidth + canvasWidth * 4 - 4), DEFAULT_COLOUR_COMP));
+            sorters.push(constructorMethod(new CanvasArrayWrapper(actualData, 4 * i * canvasWidth, 4 * i * canvasWidth + canvasWidth * 4 - 4), DEFAULT_COLOUR_COMP));
         }
 
         let sortStarted = false;
@@ -526,10 +527,10 @@
                 statusText = "Paused";
                 stopReDraw();
                 console.log("number of ticks:", numberOfTicks);
-                console.log("time spent on tick", totalTimeSpent, numberOfTicks, totalTimeSpent/numberOfTicks);
-                console.log("time spent on draw", timeSpentOnDraw, timeSpentOnDraw/drawCalls);
-                console.log("time spent on CANVAS", timeSpentOnActualCanvasDraw, timeSpentOnActualCanvasDraw/drawCalls);
-                console.log("time spent on data manipulation", timeSpentOnCanvasDataManipulation, timeSpentOnCanvasDataManipulation/drawCalls);
+                console.log("time spent on tick", totalTimeSpent, numberOfTicks, totalTimeSpent / numberOfTicks);
+                console.log("time spent on draw", timeSpentOnDraw, timeSpentOnDraw / drawCalls);
+                console.log("time spent on CANVAS", timeSpentOnActualCanvasDraw, timeSpentOnActualCanvasDraw / drawCalls);
+                console.log("time spent on data manipulation", timeSpentOnCanvasDataManipulation, timeSpentOnCanvasDataManipulation / drawCalls);
                 return;
             }
             let somethingChanged = false;
@@ -542,11 +543,11 @@
             numberOfTicks++;
             if (!somethingChanged) {
                 console.log("Sorted");
-                statusText= "All Sorted. DrawCalls " + drawCalls ;
+                statusText = "All Sorted. DrawCalls " + drawCalls;
                 console.log("number of ticks:", numberOfTicks);
-                console.log("total time: ", totalTimeSpent, totalTimeSpent/numberOfTicks);
-                console.log("time spent on draw", timeSpentOnDraw, timeSpentOnDraw/drawCalls);
-                console.log("time spent on CANVAS", timeSpentOnActualCanvasDraw, timeSpentOnActualCanvasDraw/drawCalls);
+                console.log("total time: ", totalTimeSpent, totalTimeSpent / numberOfTicks);
+                console.log("time spent on draw", timeSpentOnDraw, timeSpentOnDraw / drawCalls);
+                console.log("time spent on CANVAS", timeSpentOnActualCanvasDraw, timeSpentOnActualCanvasDraw / drawCalls);
                 sorted = true;
                 sortStarted = false;
                 stopReDraw();
@@ -598,12 +599,13 @@
 
         function shuffleTheStuff() {
             for (let i = 0; i < matrix.length; i++) {
-                    shuffle(matrix[i]);
-                    sorters[i].reset();
-                }
+                shuffle(matrix[i]);
+                sorters[i].reset();
+            }
             sorted = false;
             statusText = "Shuffled"
         }
+
         shuffleTheStuff();
         statusText = "Click me";
         putMatrixToCanvasData(matrix, actualData, canvasWidth);
@@ -655,7 +657,6 @@
 
     });
 
-   
 
     function applyStep(vals, steps, wasOnLims, pos, step, maxTimes) {
         vals[pos] += steps[pos];
@@ -785,7 +786,6 @@
         actualData[2] = pixel.blue;
         actualData[3] = 255;
     }
-
 
 
 </script>
