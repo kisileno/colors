@@ -475,7 +475,6 @@
         let totalTimeSpent = 0;
         let timeSpentOnDraw = 0;
         let drawCalls = 0;
-        let drawAtOnce = 1;
 
         function DRAW() {
             drawCalls++;
@@ -516,10 +515,8 @@
             }
             let somethingChanged = false;
             let beforeTick = new Date();
-            for (;drawAtOnce > 0; drawAtOnce--) {
-                for (let i = 0; i < sorters.length; i++) {
-                    somethingChanged = sorters[i].oneTick() || somethingChanged;
-                }
+            for (let i = 0; i < sorters.length; i++) {
+                somethingChanged = sorters[i].oneTick() || somethingChanged;
             }
             drawAtOnce = 1;
             let afterTick = new Date();
@@ -608,10 +605,6 @@
                 chainedTick();
             }
         };
-        sorterCanvas.ondblclick = function() {
-            drawAtOnce += 1000;
-            console.log("DOUBLE CLICK!!!");
-        }
     };
 
     allSorters.forEach(function (ss) {
