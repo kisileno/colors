@@ -8,7 +8,6 @@
 </div>
 <script>
     let timeSpentOnActualCanvasDraw = 0;
-    let timeSpentOnCanvasDataManipulation = 0;
 
     const GLOBAL_COLOUR_MAP = [];
     let globalMapBuilt = false;
@@ -198,7 +197,6 @@
     }
 
 
-    //  CURRENTLY MERGE SORT IS NOT WORKING;
     class PartToMerge {
         constructor(low, high) {
             this.low = low;
@@ -348,12 +346,6 @@
         }
     }
 
-    /*
-        var arr = [1,2,3,4,5];
-        shuffle(arr);
-        var s = new HeapSorter(arr, function(n1, n2) {return n1-n2;});
-
-    */
     function shuffle(a) {
         for (let i = a.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -483,6 +475,7 @@
         let totalTimeSpent = 0;
         let timeSpentOnDraw = 0;
         let drawCalls = 0;
+        let drawAtOnce = 1;
 
         function DRAW() {
             drawCalls++;
@@ -506,7 +499,6 @@
 
         let sorters = [];
         for (let i = 0; i < matrix.length; i++) {
-            //sorters.push(constructorMethod(new AsIsArrayWrapper(matrix[i]), DEFAULT_COLOUR_COMP));
             sorters.push(constructorMethod(new CanvasArrayWrapper(actualData, 4 * i * canvasWidth, 4 * i * canvasWidth + canvasWidth * 4 - 4), DEFAULT_COLOUR_COMP));
         }
 
@@ -520,20 +512,22 @@
                 console.log("time spent on tick", totalTimeSpent, numberOfTicks, totalTimeSpent / numberOfTicks);
                 console.log("time spent on draw", timeSpentOnDraw, timeSpentOnDraw / drawCalls);
                 console.log("time spent on CANVAS", timeSpentOnActualCanvasDraw, timeSpentOnActualCanvasDraw / drawCalls);
-                console.log("time spent on data manipulation", timeSpentOnCanvasDataManipulation, timeSpentOnCanvasDataManipulation / drawCalls);
                 return;
             }
             let somethingChanged = false;
             let beforeTick = new Date();
-            for (let i = 0; i < sorters.length; i++) {
-                somethingChanged = sorters[i].oneTick() || somethingChanged;
+            for (;drawAtOnce > 0; drawAtOnce--) {
+                for (let i = 0; i < sorters.length; i++) {
+                    somethingChanged = sorters[i].oneTick() || somethingChanged;
+                }
             }
+            drawAtOnce = 1;
             let afterTick = new Date();
             totalTimeSpent += (afterTick - beforeTick);
             numberOfTicks++;
             if (!somethingChanged) {
                 console.log("Sorted");
-                statusText = "All Sorted. DrawCalls " + drawCalls;
+                statusText = "All Sorted.";
                 console.log("number of ticks:", numberOfTicks);
                 console.log("total time: ", totalTimeSpent, totalTimeSpent / numberOfTicks);
                 console.log("time spent on draw", timeSpentOnDraw, timeSpentOnDraw / drawCalls);
@@ -614,6 +608,10 @@
                 chainedTick();
             }
         };
+        sorterCanvas.ondblclick = function() {
+            drawAtOnce += 1000;
+            console.log("DOUBLE CLICK!!!");
+        }
     };
 
     allSorters.forEach(function (ss) {
@@ -623,14 +621,11 @@
         sorterDiv.id = ss.name + "-" + ss.name;
         let sorterName = document.createElement('h3');
         sorterName.innerHTML = ss.name;
-        //sorterName.setAttribute('style', "align:left");
         let sorterDescription = document.createElement('label');
         sorterDescription.innerHTML = ss.description;
         let br = document.createElement('br');
 
-        //const canvasWidth = canvasWidth;
         const canvasHeight = Math.ceil(canvasWidth / 2);
-//        const canvasHeight = 1;
         let sorterCanvas = document.createElement('canvas');
         sorterCanvas.id = ss.name + "CanvasId";
         sorterCanvas.width = canvasWidth;
@@ -643,10 +638,7 @@
         sorterDiv.appendChild(sorterCanvas);
         mainBlock.appendChild(sorterDiv);
 
-
         REGISTER_ALL_THE_SHIT(sorterCanvas, ss.constructorMethod, canvasWidth, canvasHeight, step);
-
-
     });
 
 
@@ -668,8 +660,6 @@
                 wasOnLims[pos] = 0;
                 steps[pos] = step;
             }
-
-
         }
     }
 
@@ -688,7 +678,6 @@
             for (let j = 0; j < columns; j++) {
 
                 row.push(new Colour(currentColorVals[0], currentColorVals[1], currentColorVals[2]));
-                // row.push(Colour.randomColour());
                 applyStep(currentColorVals, currentSteps, wasOnLimTimes, 0, step, maxTimes);
                 applyStep(currentColorVals, currentSteps, wasOnLimTimes, 1, step, maxTimes);
                 applyStep(currentColorVals, currentSteps, wasOnLimTimes, 2, step, maxTimes);
@@ -701,33 +690,30 @@
     function cacheColourObjects(colours) {
         if (!globalMapBuilt) {
             for (let i = 0; i < colours.length; i++) {
-                const colour = colours[i];
-                //GLOBAL_COLOUR_MAP[255 * 255 * colour.red + 255 * colour.green + colour.blue] = colour;
-                if (!GLOBAL_COLOUR_MAP[colour.red]) {
-                    GLOBAL_COLOUR_MAP[colour.red] = [];
-                }
-                if (!GLOBAL_COLOUR_MAP[colour.red][colour.green]) {
-                    GLOBAL_COLOUR_MAP[colour.red][colour.green] = [];
-                }
-                GLOBAL_COLOUR_MAP[colour.red][colour.green][colour.blue] = colour;
+                ADD_TO_GLOBAL_MAP(colours[i]);
             }
             globalMapBuilt = true;
         }
     }
 
+    function ADD_TO_GLOBAL_MAP(colour) {
+        if (!GLOBAL_COLOUR_MAP[colour.red]) {
+            GLOBAL_COLOUR_MAP[colour.red] = [];
+        }
+        if (!GLOBAL_COLOUR_MAP[colour.red][colour.green]) {
+            GLOBAL_COLOUR_MAP[colour.red][colour.green] = [];
+        }
+        GLOBAL_COLOUR_MAP[colour.red][colour.green][colour.blue] = colour;
+    }
+
     function drawColourMatrix(matrix, canvasCtx, imageData, actualData, canvasWidth) {
-        let beforeManipulation = new Date();
-        //putMatrixToCanvasData(matrix, actualData, canvasWidth)
-        //veryAlternativePutMatrixToCanvasData(matrix, actualData, canvasWidth)
         let beforePut = new Date();
-        timeSpentOnCanvasDataManipulation += (beforePut - beforeManipulation);
         canvasCtx.putImageData(imageData, 0, 0);
         let afterPut = new Date();
         timeSpentOnActualCanvasDraw += (afterPut - beforePut);
 
     }
 
-    //LACK OF OPTIMISATIONS
     function putMatrixToCanvasData(matrix, actualData, canvasWidth) {
         for (let i = 0; i < matrix.length; i++) {
             let row = matrix[i];
@@ -740,43 +726,6 @@
                 actualData[offset + 3] = 255;
             }
         }
-    }
-
-    //LACK OF OPTIMISATIONS
-    function alternativePutMatrixToCanvasData(matrix, actualData, canvasWidth) {
-        let canvasHeight = matrix.length;
-        const numberOfPixels = actualData.length / 4;
-        for (let i = 0; i < numberOfPixels; i++) {
-            const row = Math.floor(i / canvasWidth);
-            const column = i % canvasWidth;
-            const pixel = matrix[row][column];
-            actualData[i * 4] = pixel.red;
-            actualData[i * 4 + 1] = pixel.green;
-            actualData[i * 4 + 2] = pixel.blue;
-            actualData[i * 4 + 3] = 255;
-        }
-    }
-
-    //LACK OF OPTIMISATIONS
-    function veryAlternativePutMatrixToCanvasData(matrix, actualData, canvasWidth) {
-        let canvasHeight = matrix.length;
-        const numberOfPixels = actualData.length / 4;
-        let pixelNumber = numberOfPixels - 1;
-        while (pixelNumber) {
-            const row = Math.floor(pixelNumber / canvasWidth);
-            const column = pixelNumber % canvasWidth;
-            const pixel = matrix[row][column];
-            actualData[pixelNumber * 4] = pixel.red;
-            actualData[pixelNumber * 4 + 1] = pixel.green;
-            actualData[pixelNumber * 4 + 2] = pixel.blue;
-            actualData[pixelNumber * 4 + 3] = 255;
-            pixelNumber -= 1;
-        }
-        const pixel = matrix[0][0];
-        actualData[0] = pixel.red;
-        actualData[1] = pixel.green;
-        actualData[2] = pixel.blue;
-        actualData[3] = 255;
     }
 
 
