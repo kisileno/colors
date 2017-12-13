@@ -619,7 +619,7 @@
         let lastTimeStamp = -1;
         let forwardingTimeout = -1;
         let statusBeforeFastForwarding;
-        sorterCanvas.onmousedown = function (_event) {
+        let ON_DOWN = function (_event) {
             lastTimeStamp = _event.timeStamp;
             forwardingTimeout = setTimeout(function() {
                 console.log("START THE SHIT");
@@ -629,7 +629,8 @@
             }, 1000);
             console.log("onmouse DOWN!!~!!!!!!!", _event.timeStamp);
         }
-        sorterCanvas.onmouseup = function (_event) {
+        sorterCanvas.onmousedown = ON_DOWN;
+        let ON_UP = function (_event) {
             console.log("onmouse up~!!!!!!!", _event.timeStamp);
             if (_event.timeStamp - lastTimeStamp > 1000) {
                 console.log("stop the shit");
@@ -639,9 +640,10 @@
                 clearTimeout(forwardingTimeout)
                 regularClick();
             }
-
-
         }
+        sorterCanvas.onmouseup = ON_UP;
+        sorterCanvas.ontouchstart = ON_DOWN;
+        sorterCanvas.ontouchend = ON_UP;
     };
 
     allSorters.forEach(function (ss) {
