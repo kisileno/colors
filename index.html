@@ -503,6 +503,7 @@
 
         let sortStarted = false;
         let justACounter = 0;
+        let fastForwardingDelay = -1;
         let chainedTick = function () {
             if (!sortStarted) {
                 statusText = "Paused";
@@ -515,16 +516,24 @@
             }
             let somethingChanged = false;
             let beforeTick = new Date();
-            for (let i = 0; i < sorters.length; i++) {
-                somethingChanged = sorters[i].oneTick() || somethingChanged;
-            }
+            do {
+                for (let i = 0; i < sorters.length; i++) {
+                    if (fastForwardingDelay > 0) {
+                        for (let kkk = 0; kkk < 50; kkk++) {
+                            somethingChanged = sorters[i].oneTick() || somethingChanged;
+                        }
+                    } else {
+                        somethingChanged = sorters[i].oneTick() || somethingChanged;
+                    }
+                }
+            } while (new Date() - beforeTick < fastForwardingDelay)
             drawAtOnce = 1;
             let afterTick = new Date();
             totalTimeSpent += (afterTick - beforeTick);
             numberOfTicks++;
             if (!somethingChanged) {
                 console.log("Sorted");
-                statusText = "All Sorted.";
+                statusText = "All Sorted";
                 console.log("number of ticks:", numberOfTicks);
                 console.log("total time: ", totalTimeSpent, totalTimeSpent / numberOfTicks);
                 console.log("time spent on draw", timeSpentOnDraw, timeSpentOnDraw / drawCalls);
@@ -591,7 +600,7 @@
         statusText = "Click me";
         putMatrixToCanvasData(matrix, actualData, canvasWidth);
         DRAW();
-        sorterCanvas.onclick = function () {
+        let regularClick = function () {
             if (sorted) {
                 shuffleTheStuff();
                 putMatrixToCanvasData(matrix, actualData, canvasWidth);
@@ -605,6 +614,34 @@
                 chainedTick();
             }
         };
+
+        //sorterCanvas.onclick = regularClick;
+        let lastTimeStamp = -1;
+        let forwardingTimeout = -1;
+        let statusBeforeFastForwarding;
+        sorterCanvas.onmousedown = function (_event) {
+            lastTimeStamp = _event.timeStamp;
+            forwardingTimeout = setTimeout(function() {
+                console.log("START THE SHIT");
+                statusBeforeFastForwarding = statusText;
+                statusText = "Fast forwarding"
+                fastForwardingDelay = 1000;
+            }, 1000);
+            console.log("onmouse DOWN!!~!!!!!!!", _event.timeStamp);
+        }
+        sorterCanvas.onmouseup = function (_event) {
+            console.log("onmouse up~!!!!!!!", _event.timeStamp);
+            if (_event.timeStamp - lastTimeStamp > 1000) {
+                console.log("stop the shit");
+                statusText = statusBeforeFastForwarding;
+                fastForwardingDelay = -1;
+            } else {
+                clearTimeout(forwardingTimeout)
+                regularClick();
+            }
+
+
+        }
     };
 
     allSorters.forEach(function (ss) {
