@@ -628,6 +628,7 @@
                 fastForwardingDelay = 1000;
             }, 1000);
             console.log("onmouse DOWN!!~!!!!!!!", _event.timeStamp);
+            _event.preventDefault();
         }
         sorterCanvas.onmousedown = ON_DOWN;
         let ON_UP = function (_event) {
@@ -640,6 +641,7 @@
                 clearTimeout(forwardingTimeout)
                 regularClick();
             }
+            _event.preventDefault();
         }
         sorterCanvas.onmouseup = ON_UP;
         sorterCanvas.ontouchstart = ON_DOWN;
