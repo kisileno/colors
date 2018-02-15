@@ -391,10 +391,8 @@
     const mainBlock = document.getElementById("mainBlock");
 
     const maxColourValue = 255;
-    const maxCanvasWidth = maxColourValue * 5;
-    const documentWidth = document.documentElement.clientWidth;
-    const step = Math.max(1, Math.ceil(maxCanvasWidth / documentWidth));
-    const canvasWidth = Math.round(maxCanvasWidth / step);
+    const canvasWidth = mainBlock.offsetWidth;
+    const step = canvasWidth / maxColourValue / 5;
     const DEFAULT_COLOUR_COMP = function (c1, c2) {
         return c1.compare(c2);
     };
@@ -409,7 +407,7 @@
         }
 
         static to255Range(n) {
-            return Math.max(Math.min(n, 255), 0);
+            return Math.ceil(Math.max(Math.min(n, 255), 0));
         }
 
         static randomColour() {
@@ -595,7 +593,7 @@
             statusText = "Shuffled"
         }
 
-        shuffleTheStuff();
+        // shuffleTheStuff();
         statusText = "Click me";
         putMatrixToCanvasData(matrix, actualData, canvasWidth);
         DRAW();
@@ -675,47 +673,79 @@
     });
 
 
-    function applyStep(vals, steps, wasOnLims, pos, step, maxTimes) {
-        vals[pos] += steps[pos];
-        if (vals[pos] >= maxColourValue) {
-            if (wasOnLims[pos] < maxTimes) {
-                wasOnLims[pos]++;
-                steps[pos] = 0;
-            } else {
-                wasOnLims[pos] = 0;
-                steps[pos] = -step;
-            }
-        } else if (vals[pos] <= 0) {
-            if (wasOnLims[pos] < maxTimes) {
-                wasOnLims[pos]++;
-                steps[pos] = 0;
-            } else {
-                wasOnLims[pos] = 0;
-                steps[pos] = step;
-            }
-        }
-    }
-
     function generateColourMatrix(width, height, step) {
 
         const rows = height;
         const columns = width;
-        const maxTimes = maxColourValue / step;
         let colourMatrix = [];
 
-        for (let i = 0; i < rows; i++) {
-            let row = [];
-            let currentSteps = [step, step, -step];
-            let currentColorVals = [maxColourValue, 0, 0];
-            let wasOnLimTimes = [0, maxTimes, maxTimes];
-            for (let j = 0; j < columns; j++) {
+        const D_UP = 0;
+        const D_DOWN = 1;
+        const D_TOP = 2;
+        const D_BOTTOM = 3;
+        const D_THE_MOST_BOTTOM = 4;
+        const MAX_STEPS = maxColourValue / step;
 
-                row.push(new Colour(currentColorVals[0], currentColorVals[1], currentColorVals[2]));
-                applyStep(currentColorVals, currentSteps, wasOnLimTimes, 0, step, maxTimes);
-                applyStep(currentColorVals, currentSteps, wasOnLimTimes, 1, step, maxTimes);
-                applyStep(currentColorVals, currentSteps, wasOnLimTimes, 2, step, maxTimes);
+        class ColorState {
+            constructor(colorVal, direction, stepsDone) {
+                this.colorVal = colorVal;
+                this.direction = direction;
+                this.stepsDone = stepsDone;
             }
-            colourMatrix.push(row);
+        }
+        let referenceRow = [];
+
+        let red = new ColorState(maxColourValue, D_TOP, 0);
+        let green = new ColorState(0, D_UP, 0);
+        let blue = new ColorState(0, D_THE_MOST_BOTTOM, 0);
+        let allTogether = [red, green, blue];
+        for (let j = 0; j < columns; j++) {
+            referenceRow.push(new Colour(red.colorVal, green.colorVal, blue.colorVal));
+            allTogether.forEach(function (c) {
+                if (c.stepsDone >= MAX_STEPS) {
+                    switch (c.direction) {
+                        case D_BOTTOM:
+                            c.direction = D_UP;
+                            break;
+                        case D_TOP:
+                            c.direction = D_DOWN;
+                            break;
+                        case D_UP:
+                            c.direction = D_TOP;
+                            break;
+                        case D_DOWN:
+                            c.direction = D_BOTTOM;
+                            break;
+                        case D_THE_MOST_BOTTOM:
+                            c.direction = D_BOTTOM;
+                            break;
+                    }
+                    c.stepsDone = 0;
+                }
+                switch (c.direction) {
+                    case D_BOTTOM:
+                        break;
+                    case D_TOP:
+                        break;
+                    case D_UP:
+                        c.colorVal += step;
+                        break;
+                    case D_DOWN:
+                        c.colorVal -= step;
+                        break;
+                    case D_THE_MOST_BOTTOM:
+                        break;
+                }
+                c.stepsDone++;
+            });
+        }
+        for (let i = 0; i < rows; i++) {
+            let newRow = [];
+            for (let k = 0; k < referenceRow.length; k++) {
+                let c = referenceRow[k];
+                newRow.push(new Colour(c.red, c.green, c.blue));
+            }
+            colourMatrix.push(newRow);
         }
         return colourMatrix;
     }
