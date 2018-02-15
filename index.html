@@ -43,7 +43,7 @@
                 console.error("fuck you 3");
             }
             this.length = to - from;
-            if ((this.length % 4) != 0) {
+            if ((this.length % 4) !== 0) {
                 console.error("fuck you 4");
             }
             this.canvasDataArray = canvasDataArray;
@@ -123,7 +123,6 @@
             for (let i = this.patientInd + 1; i < this.arr.size() - 1; i++) {
                 let patient = this.arr.get(i);
                 let toComp = this.arr.get(i + 1);
-                ;
                 if (this.comparator(patient, toComp) > 0) {
                     this.arr.set(toComp, i);
                     this.arr.set(patient, i + 1);
@@ -488,7 +487,7 @@
         function drawStatusText(ctx, textToDraw, canvasWidth) {
 
 
-            ctx.fillStyle = "white"
+            ctx.fillStyle = "white";
             ctx.font = "bold 50px serif ";
             let textMeasurements = ctx.measureText(textToDraw);
             ctx.fillText(statusText, canvasWidth - textMeasurements.width - 15, 50);
@@ -526,7 +525,7 @@
                         somethingChanged = sorters[i].oneTick() || somethingChanged;
                     }
                 }
-            } while (new Date() - beforeTick < fastForwardingDelay)
+            } while (new Date() - beforeTick < fastForwardingDelay);
             drawAtOnce = 1;
             let afterTick = new Date();
             totalTimeSpent += (afterTick - beforeTick);
@@ -543,7 +542,7 @@
                 stopReDraw();
             } else {
                 justACounter++;
-                if (justACounter % redrawEvery == 0) {
+                if (justACounter % redrawEvery === 0) {
                     hasSomethingToDraw = true;
                     //setTimeout(chainedTick, 1500 / targetFps);
                     DRAW();
@@ -621,15 +620,15 @@
         let statusBeforeFastForwarding;
         let ON_DOWN = function (_event) {
             lastTimeStamp = _event.timeStamp;
-            forwardingTimeout = setTimeout(function() {
+            forwardingTimeout = setTimeout(function () {
                 console.log("START THE SHIT");
                 statusBeforeFastForwarding = statusText;
-                statusText = "Fast forwarding"
+                statusText = "Fast forwarding";
                 fastForwardingDelay = 1000;
             }, 1000);
             console.log("onmouse DOWN!!~!!!!!!!", _event.timeStamp);
             _event.preventDefault();
-        }
+        };
         sorterCanvas.onmousedown = ON_DOWN;
         let ON_UP = function (_event) {
             console.log("onmouse up~!!!!!!!", _event.timeStamp);
@@ -638,15 +637,15 @@
                 statusText = statusBeforeFastForwarding;
                 fastForwardingDelay = -1;
             } else {
-                clearTimeout(forwardingTimeout)
+                clearTimeout(forwardingTimeout);
                 regularClick();
             }
             _event.preventDefault();
-        }
+        };
         sorterCanvas.onmouseup = ON_UP;
         sorterCanvas.ontouchstart = ON_DOWN;
         sorterCanvas.ontouchend = ON_UP;
-    };
+    }
 
     allSorters.forEach(function (ss) {
 
