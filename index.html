@@ -392,7 +392,7 @@
 
     const maxColourValue = 255;
     const canvasWidth = mainBlock.offsetWidth;
-    const step = canvasWidth / maxColourValue / 5;
+    const step = maxColourValue * 5 / canvasWidth;
     const DEFAULT_COLOUR_COMP = function (c1, c2) {
         return c1.compare(c2);
     };
