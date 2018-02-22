@@ -7,7 +7,6 @@
 
 </div>
 <script>
-    let timeSpentOnActualCanvasDraw = 0;
 
     const GLOBAL_COLOUR_MAP = [];
     let globalMapBuilt = false;
@@ -468,28 +467,16 @@
         const targetFps = 60;
         const redrawEvery = 1;
 
-        let numberOfTicks = 0;
-        let totalTimeSpent = 0;
-        let timeSpentOnDraw = 0;
-        let drawCalls = 0;
-
         function DRAW() {
-            drawCalls++;
-            let beforeDraw = new Date();
             drawColourMatrix(matrix, ctx, imageData, actualData, canvasWidth);
             if (statusText) drawStatusText(ctx, statusText, canvasWidth);
-            let afterDraw = new Date();
-            timeSpentOnDraw += (afterDraw - beforeDraw);
         }
 
         function drawStatusText(ctx, textToDraw, canvasWidth) {
-
-
             ctx.fillStyle = "white";
             ctx.font = "bold 50px serif ";
             let textMeasurements = ctx.measureText(textToDraw);
             ctx.fillText(statusText, canvasWidth - textMeasurements.width - 15, 50);
-
         }
 
 
@@ -499,56 +486,25 @@
         }
 
         let sortStarted = false;
-        let justACounter = 0;
         let fastForwardingDelay = -1;
         let chainedTick = function () {
             if (!sortStarted) {
                 statusText = "Paused";
                 stopReDraw();
-                console.log("number of ticks:", numberOfTicks);
-                console.log("time spent on tick", totalTimeSpent, numberOfTicks, totalTimeSpent / numberOfTicks);
-                console.log("time spent on draw", timeSpentOnDraw, timeSpentOnDraw / drawCalls);
-                console.log("time spent on CANVAS", timeSpentOnActualCanvasDraw, timeSpentOnActualCanvasDraw / drawCalls);
                 return;
             }
             let somethingChanged = false;
-            let beforeTick = new Date();
-            do {
-                for (let i = 0; i < sorters.length; i++) {
-                    if (fastForwardingDelay > 0) {
-                        for (let kkk = 0; kkk < 50; kkk++) {
-                            somethingChanged = sorters[i].oneTick() || somethingChanged;
-                        }
-                    } else {
-                        somethingChanged = sorters[i].oneTick() || somethingChanged;
-                    }
-                }
-            } while (new Date() - beforeTick < fastForwardingDelay);
-            drawAtOnce = 1;
-            let afterTick = new Date();
-            totalTimeSpent += (afterTick - beforeTick);
-            numberOfTicks++;
+            for (let i = 0; i < sorters.length; i++) {
+                somethingChanged = sorters[i].oneTick() || somethingChanged;
+            }
             if (!somethingChanged) {
-                console.log("Sorted");
                 statusText = "All Sorted";
-                console.log("number of ticks:", numberOfTicks);
-                console.log("total time: ", totalTimeSpent, totalTimeSpent / numberOfTicks);
-                console.log("time spent on draw", timeSpentOnDraw, timeSpentOnDraw / drawCalls);
-                console.log("time spent on CANVAS", timeSpentOnActualCanvasDraw, timeSpentOnActualCanvasDraw / drawCalls);
                 sorted = true;
                 sortStarted = false;
                 stopReDraw();
             } else {
-                justACounter++;
-                if (justACounter % redrawEvery === 0) {
-                    hasSomethingToDraw = true;
-                    //setTimeout(chainedTick, 1500 / targetFps);
-                    DRAW();
-                } else {
-                    //chainedTick();
-                }
+                DRAW();
                 window.requestAnimationFrame(chainedTick);
-
             }
         };
         let reDrawInterval;
@@ -566,7 +522,6 @@
                 return;
             }
             let delay = 1000 / fps;
-            //console.log("REGISTERING REDRAW: ", fps, delay);
             reDrawInterval = setInterval(function () {
                 if (hasSomethingToDraw) {
                     DRAW();
@@ -612,7 +567,6 @@
             }
         };
 
-        //sorterCanvas.onclick = regularClick;
         let lastTimeStamp = -1;
         let forwardingTimeout = -1;
         let statusBeforeFastForwarding;
@@ -661,7 +615,7 @@
         sorterCanvas.id = ss.name + "CanvasId";
         sorterCanvas.width = canvasWidth;
         sorterCanvas.height = canvasHeight;
-        sorterCanvas.innerHTML = "There should be HTML canvas with a pretty animation, but fuck you."
+        sorterCanvas.innerHTML = "There should be HTML canvas with a pretty animation, but fuck you.";
 
         sorterDiv.appendChild(sorterName);
         sorterDiv.appendChild(sorterDescription);
@@ -693,6 +647,7 @@
                 this.stepsDone = stepsDone;
             }
         }
+
         let referenceRow = [];
 
         let red = new ColorState(maxColourValue, D_TOP, 0);
@@ -770,11 +725,7 @@
     }
 
     function drawColourMatrix(matrix, canvasCtx, imageData, actualData, canvasWidth) {
-        let beforePut = new Date();
         canvasCtx.putImageData(imageData, 0, 0);
-        let afterPut = new Date();
-        timeSpentOnActualCanvasDraw += (afterPut - beforePut);
-
     }
 
     function putMatrixToCanvasData(matrix, actualData, canvasWidth) {
