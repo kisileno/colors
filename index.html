@@ -489,7 +489,6 @@
         let fastForwardingDelay = -1;
         let chainedTick = function () {
             if (!sortStarted) {
-                statusText = "Paused";
                 stopReDraw();
                 return;
             }
@@ -515,30 +514,6 @@
             clearInterval(reDrawInterval);
         }
 
-        function registerReDraw() {
-            stopReDraw();
-            let fps = targetFps;
-            if (fps === 0) {
-                return;
-            }
-            let delay = 1000 / fps;
-            reDrawInterval = setInterval(function () {
-                if (hasSomethingToDraw) {
-                    DRAW();
-                    hasSomethingToDraw = false;
-                }
-            }, delay);
-
-        }
-
-        function registerRequestFrameChainedRedraw() {
-            if (hasSomethingToDraw) {
-                DRAW();
-                hasSomethingToDraw = false;
-            }
-            window.requestAnimationFrame(registerRequestFrameChainedRedraw);
-        }
-
         function shuffleTheStuff() {
             for (let i = 0; i < matrix.length; i++) {
                 shuffle(matrix[i]);
@@ -558,45 +533,15 @@
                 putMatrixToCanvasData(matrix, actualData, canvasWidth);
                 DRAW();
             } else if (sortStarted) {
+                statusText = "Paused";
                 sortStarted = false;
             } else {
-                console.log("starting sort");
                 statusText = "Sorting";
                 sortStarted = true;
                 chainedTick();
             }
         };
-
-        let lastTimeStamp = -1;
-        let forwardingTimeout = -1;
-        let statusBeforeFastForwarding;
-        let ON_DOWN = function (_event) {
-            lastTimeStamp = _event.timeStamp;
-            forwardingTimeout = setTimeout(function () {
-                console.log("START THE SHIT");
-                statusBeforeFastForwarding = statusText;
-                statusText = "Fast forwarding";
-                fastForwardingDelay = 1000;
-            }, 1000);
-            console.log("onmouse DOWN!!~!!!!!!!", _event.timeStamp);
-            _event.preventDefault();
-        };
-        sorterCanvas.onmousedown = ON_DOWN;
-        let ON_UP = function (_event) {
-            console.log("onmouse up~!!!!!!!", _event.timeStamp);
-            if (_event.timeStamp - lastTimeStamp > 1000) {
-                console.log("stop the shit");
-                statusText = statusBeforeFastForwarding;
-                fastForwardingDelay = -1;
-            } else {
-                clearTimeout(forwardingTimeout);
-                regularClick();
-            }
-            _event.preventDefault();
-        };
-        sorterCanvas.onmouseup = ON_UP;
-        sorterCanvas.ontouchstart = ON_DOWN;
-        sorterCanvas.ontouchend = ON_UP;
+        sorterCanvas.onclick = regularClick;
     }
 
     allSorters.forEach(function (ss) {
