@@ -451,6 +451,7 @@
     }
 
     class DebugInfo {
+
         constructor(sorterName) {
             this.sorterName = sorterName;
             this.reset();
@@ -465,6 +466,7 @@
             this.lastTickStart = null;
             this.avgDrawCallDuration = 0;
             this.avgTickDuration = 0;
+            this.drawStartsList = [];
         }
 
 
@@ -486,10 +488,13 @@
             }
             this.totalTime += (new Date() - this.startTime);
             this.startTime = null;
+            this.drawStartsList = [];
         }
 
         beginDraw() {
             this.lastDrawCallStart = new Date();
+            this.drawStartsList.push(this.lastDrawCallStart);
+            if (this.drawStartsList.length > 100) this.drawStartsList.shift();
         }
 
         endDraw() {
@@ -499,6 +504,15 @@
             let now = new Date();
             let callDuration = now - this.lastDrawCallStart;
             this.avgDrawCallDuration = (this.avgDrawCallDuration * this.numberOfDrawCalls + callDuration) / ++this.numberOfDrawCalls;
+        }
+
+        currentFps() {
+            let frames = this.drawStartsList.length;
+            if (frames < 100) return Infinity;
+            let timeSpentOnLastFrames = this.drawStartsList[frames - 1] - this.drawStartsList[0];
+            console.log(this.drawStartsList);
+            return 1000 * frames / timeSpentOnLastFrames;
+
         }
 
         beginTick() {
@@ -556,19 +570,25 @@
 
 
             let timeSpent = debugInfo.currentTotalTime();
-            let timeSpentFormatted = "Time spent: " + Math.floor(timeSpent / 1000 / 60) + " min " + Math.floor(timeSpent / 1000) + " sec"
+            let millisecondsInMinute = 1000 * 60;
+            let timeSpentFormatted = "Time spent: " + Math.floor(timeSpent / (millisecondsInMinute)) + " min " + Math.round((timeSpent % (millisecondsInMinute))/ 1000) + " sec";
             ctx.fillText(timeSpentFormatted, x + 10, y + 20, debugRectangleWidth);
 
             let totalDrawCalls = "Total draw calls: " + debugInfo.numberOfDrawCalls;
             ctx.fillText(totalDrawCalls, x + 10, y + 35, debugRectangleWidth);
 
-            let avgDrawCallDuration = "Avg Draw: "  + Number(debugInfo.avgDrawCallDuration).toFixed(2) + "ms";
-            ctx.fillText(avgDrawCallDuration, x + 10, y + 50, debugRectangleWidth);
+            let currentFps = "Current FPS: " + Number(debugInfo.currentFps()).toFixed(2);
+            ctx.fillText(currentFps, x + 10, y + 50, debugRectangleWidth);
 
-            let avgTickDuration = "Avg Sort: " + Number(debugInfo.avgTickDuration).toFixed(2) + "ms";
-            ctx.fillText(avgTickDuration, x + 10, y + 65, debugRectangleWidth);
+            let avgDrawCallDuration = "Avg Draw time: "  + Number(debugInfo.avgDrawCallDuration).toFixed(2) + "ms";
+            ctx.fillText(avgDrawCallDuration, x + 10, y + 65, debugRectangleWidth);
 
+            let avgTickDuration = "Avg Sort time: " + Number(debugInfo.avgTickDuration).toFixed(2) + "ms";
+            ctx.fillText(avgTickDuration, x + 10, y + 80, debugRectangleWidth);
 
+            let avgFps = "Avg FPS: " + Number(debugInfo.numberOfDrawCalls * 1000 / timeSpent).toFixed(2);
+            ctx.fillText(avgFps, x + 10, y + 95, debugRectangleWidth);
+            
         }
 
         let sorters = [];
