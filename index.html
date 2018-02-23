@@ -4,6 +4,8 @@
 <div id="mainBlock">
 
     <h1>Sorting algorithms swap comparisons</h1>
+    <input id="statusTextCheckbox" type="checkbox" checked/><label>Status text</label>
+    <input id="debugInfoCheckbox" type="checkbox"/><label>Debug info</label>
 
 </div>
 <script>
@@ -388,10 +390,13 @@
 
 
     const mainBlock = document.getElementById("mainBlock");
+    const statusTextCheckbox = document.getElementById("statusTextCheckbox");
+    const debugInfoCheckbox = document.getElementById("debugInfoCheckbox");
 
     const maxColourValue = 255;
     const canvasWidth = mainBlock.offsetWidth;
     const step = maxColourValue * 5 / canvasWidth;
+
     const DEFAULT_COLOUR_COMP = function (c1, c2) {
         return c1.compare(c2);
     };
@@ -408,15 +413,6 @@
         static to255Range(n) {
             return Math.ceil(Math.max(Math.min(n, 255), 0));
         }
-
-        static randomColour() {
-            function pizde() {
-                return Math.ceil(Math.random() * 255);
-            }
-
-            return new Colour(pizde(), pizde(), pizde());
-        }
-
 
         static getWikiHue(colour) {
             const R = colour.red;
@@ -469,7 +465,8 @@
 
         function DRAW() {
             drawColourMatrix(matrix, ctx, imageData, actualData, canvasWidth);
-            if (statusText) drawStatusText(ctx, statusText, canvasWidth);
+            if (statusText && statusTextCheckbox.checked) drawStatusText(ctx, statusText, canvasWidth);
+            if (debugInfoCheckbox.checked) drawDebugStats(ctx, {}, canvasWidth, canvasHeight);
         }
 
         function drawStatusText(ctx, textToDraw, canvasWidth) {
@@ -479,6 +476,15 @@
             ctx.fillText(statusText, canvasWidth - textMeasurements.width - 15, 50);
         }
 
+        function drawDebugStats(ctx, debugStats, canvasWidth, canvasHeight) {
+            let debugRectangleWidth = 200;
+            let debugRectangleHeight = 100;
+            let x = canvasWidth - debugRectangleWidth;
+            let y = canvasHeight - debugRectangleHeight;
+            ctx.fillStyle = 'rgba(5, 5, 5, 0.5)';
+            ctx.fillRect(x, y, debugRectangleWidth, debugRectangleHeight);
+        }
+
 
         let sorters = [];
         for (let i = 0; i < matrix.length; i++) {
@@ -486,7 +492,6 @@
         }
 
         let sortStarted = false;
-        let fastForwardingDelay = -1;
         let chainedTick = function () {
             if (!sortStarted) {
                 stopReDraw();
@@ -523,7 +528,7 @@
             statusText = "Shuffled"
         }
 
-        // shuffleTheStuff();
+        shuffleTheStuff();
         statusText = "Click me";
         putMatrixToCanvasData(matrix, actualData, canvasWidth);
         DRAW();
@@ -555,7 +560,7 @@
         sorterDescription.innerHTML = ss.description;
         let br = document.createElement('br');
 
-        const canvasHeight = Math.ceil(canvasWidth / 2);
+        const canvasHeight = Math.ceil(canvasWidth / 2.5);
         let sorterCanvas = document.createElement('canvas');
         sorterCanvas.id = ss.name + "CanvasId";
         sorterCanvas.width = canvasWidth;
