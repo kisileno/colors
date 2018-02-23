@@ -451,13 +451,14 @@
     }
 
     class DebugInfo {
-        constructor(mergerName) {
-            this.mergerName = mergerName;
+        constructor(sorterName) {
+            this.sorterName = sorterName;
             this.reset();
         }
 
         reset() {
-            this.startTime = new Date();
+            this.startTime = null;
+            this.totalTime = 0;
             this.numberOfDrawCalls = 0;
             this.numberOfTicks = 0;
             this.lastDrawCallStart = null;
@@ -466,11 +467,28 @@
             this.avgTickDuration = 0;
         }
 
-        timeSpent() {
-            return "dahuia";
+
+        currentTotalTime() {
+            if (this.startTime) {
+                return this.totalTime + (new Date() - this.startTime);
+            } else {
+                return this.totalTime;
+            }
         }
 
-        startDraw() {
+        start() {
+            this.startTime = new Date();
+        }
+
+        stop() {
+            if (!this.startTime) {
+                throw "nu blyaaa";
+            }
+            this.totalTime += (new Date() - this.startTime);
+            this.startTime = null;
+        }
+
+        beginDraw() {
             this.lastDrawCallStart = new Date();
         }
 
@@ -483,7 +501,7 @@
             this.avgDrawCallDuration = (this.avgDrawCallDuration * this.numberOfDrawCalls + callDuration) / ++this.numberOfDrawCalls;
         }
 
-        startTick() {
+        beginTick() {
             this.lastTickStart = new Date();
         }
 
@@ -511,7 +529,7 @@
         const debugInfoObject = new DebugInfo("pahui zeleni");
 
         function DRAW() {
-            debugInfoObject.startDraw();
+            debugInfoObject.beginDraw();
             drawColourMatrix(matrix, ctx, imageData, actualData, canvasWidth);
             debugInfoObject.endDraw();
             if (statusText && statusTextCheckbox.checked) drawStatusText(ctx, statusText, canvasWidth);
@@ -536,14 +554,19 @@
             ctx.fillStyle = "white";
             ctx.font = "bold 15px serif ";
 
+
+            let timeSpent = debugInfo.currentTotalTime();
+            let timeSpentFormatted = "Time spent: " + Math.floor(timeSpent / 1000 / 60) + " min " + Math.floor(timeSpent / 1000) + " sec"
+            ctx.fillText(timeSpentFormatted, x + 10, y + 20, debugRectangleWidth);
+
             let totalDrawCalls = "Total draw calls: " + debugInfo.numberOfDrawCalls;
-            ctx.fillText(totalDrawCalls, x + 10, y + 20, debugRectangleWidth);
+            ctx.fillText(totalDrawCalls, x + 10, y + 35, debugRectangleWidth);
 
             let avgDrawCallDuration = "Avg Draw: "  + Number(debugInfo.avgDrawCallDuration).toFixed(2) + "ms";
-            ctx.fillText(avgDrawCallDuration, x + 10, y + 35, debugRectangleWidth);
+            ctx.fillText(avgDrawCallDuration, x + 10, y + 50, debugRectangleWidth);
 
-            let avgTickDuration = "Avg Tick: " + Number(debugInfo.avgTickDuration).toFixed(2) + "ms";
-            ctx.fillText(avgTickDuration, x + 10, y + 50, debugRectangleWidth);
+            let avgTickDuration = "Avg Sort: " + Number(debugInfo.avgTickDuration).toFixed(2) + "ms";
+            ctx.fillText(avgTickDuration, x + 10, y + 65, debugRectangleWidth);
 
 
         }
@@ -560,7 +583,7 @@
                 return;
             }
             let somethingChanged = false;
-            debugInfoObject.startTick();
+            debugInfoObject.beginTick();
             for (let i = 0; i < sorters.length; i++) {
                 somethingChanged = sorters[i].oneTick() || somethingChanged;
             }
@@ -569,7 +592,6 @@
                 statusText = "All Sorted";
                 sorted = true;
                 sortStarted = false;
-                debugInfoObject.reset();
                 DRAW();
             } else {
                 DRAW();
@@ -593,14 +615,17 @@
         let regularClick = function () {
             if (sorted) {
                 shuffleTheStuff();
+                debugInfoObject.reset();
                 putMatrixToCanvasData(matrix, actualData, canvasWidth);
                 DRAW();
             } else if (sortStarted) {
                 statusText = "Paused";
+                debugInfoObject.stop();
                 sortStarted = false;
             } else {
                 statusText = "Sorting";
                 sortStarted = true;
+                debugInfoObject.start();
                 chainedTick();
             }
         };
@@ -618,7 +643,7 @@
         sorterDescription.innerHTML = ss.description;
         let br = document.createElement('br');
 
-        const canvasHeight = Math.ceil(canvasWidth / 2.5);
+        const canvasHeight = Math.ceil(canvasWidth / 2.2);
         let sorterCanvas = document.createElement('canvas');
         sorterCanvas.id = ss.name + "CanvasId";
         sorterCanvas.width = canvasWidth;
