@@ -5,7 +5,7 @@
 
     <h1>Sorting algorithms swap comparisons</h1>
     <input id="statusTextCheckbox" type="checkbox" checked/><label>Status text</label>
-    <input id="debugInfoCheckbox" type="checkbox"/><label>Debug info</label>
+    <input id="debugInfoCheckbox" type="checkbox" checked/><label>Debug info</label>
 
 </div>
 <script>
@@ -450,6 +450,54 @@
         }
     }
 
+    class DebugInfo {
+        constructor(mergerName) {
+            this.mergerName = mergerName;
+            this.reset();
+        }
+
+        reset() {
+            this.startTime = new Date();
+            this.numberOfDrawCalls = 0;
+            this.numberOfTicks = 0;
+            this.lastDrawCallStart = null;
+            this.lastTickStart = null;
+            this.avgDrawCallDuration = 0;
+            this.avgTickDuration = 0;
+        }
+
+        timeSpent() {
+            return "dahuia";
+        }
+
+        startDraw() {
+            this.lastDrawCallStart = new Date();
+        }
+
+        endDraw() {
+            if (!this.lastDrawCallStart) {
+                throw "pashol nahui suka";
+            }
+            let now = new Date();
+            let callDuration = now - this.lastDrawCallStart;
+            this.avgDrawCallDuration = (this.avgDrawCallDuration * this.numberOfDrawCalls + callDuration) / ++this.numberOfDrawCalls;
+        }
+
+        startTick() {
+            this.lastTickStart = new Date();
+        }
+
+        endTick() {
+            if (!this.lastTickStart) {
+                throw "vasche ahuel??";
+            }
+            let now = new Date();
+            let tickDuration = now - this.lastTickStart;
+            this.avgTickDuration = (this.avgTickDuration * this.numberOfTicks + tickDuration) / ++this.numberOfTicks;
+
+        }
+    }
+
 
     function REGISTER_ALL_THE_SHIT(sorterCanvas, constructorMethod, canvasWidth, canvasHeight, step) {
         let matrix = generateColourMatrix(canvasWidth, canvasHeight, step);
@@ -460,13 +508,14 @@
         const ctx = sorterCanvas.getContext("2d");
         const imageData = ctx.getImageData(0, 0, sorterCanvas.width, canvasHeight);
         const actualData = imageData.data;
-        const targetFps = 60;
-        const redrawEvery = 1;
+        const debugInfoObject = new DebugInfo("pahui zeleni");
 
         function DRAW() {
+            debugInfoObject.startDraw();
             drawColourMatrix(matrix, ctx, imageData, actualData, canvasWidth);
+            debugInfoObject.endDraw();
             if (statusText && statusTextCheckbox.checked) drawStatusText(ctx, statusText, canvasWidth);
-            if (debugInfoCheckbox.checked) drawDebugStats(ctx, {}, canvasWidth, canvasHeight);
+            if (debugInfoCheckbox.checked) drawDebugStats(ctx, debugInfoObject, canvasWidth, canvasHeight);
         }
 
         function drawStatusText(ctx, textToDraw, canvasWidth) {
@@ -476,15 +525,28 @@
             ctx.fillText(statusText, canvasWidth - textMeasurements.width - 15, 50);
         }
 
-        function drawDebugStats(ctx, debugStats, canvasWidth, canvasHeight) {
+        function drawDebugStats(ctx, debugInfo, canvasWidth, canvasHeight) {
             let debugRectangleWidth = 200;
             let debugRectangleHeight = 100;
             let x = canvasWidth - debugRectangleWidth;
             let y = canvasHeight - debugRectangleHeight;
             ctx.fillStyle = 'rgba(5, 5, 5, 0.5)';
             ctx.fillRect(x, y, debugRectangleWidth, debugRectangleHeight);
-        }
 
+            ctx.fillStyle = "white";
+            ctx.font = "bold 15px serif ";
+
+            let totalDrawCalls = "Total draw calls: " + debugInfo.numberOfDrawCalls;
+            ctx.fillText(totalDrawCalls, x + 10, y + 20, debugRectangleWidth);
+
+            let avgDrawCallDuration = "Avg Draw: "  + Number(debugInfo.avgDrawCallDuration).toFixed(2) + "ms";
+            ctx.fillText(avgDrawCallDuration, x + 10, y + 35, debugRectangleWidth);
+
+            let avgTickDuration = "Avg Tick: " + Number(debugInfo.avgTickDuration).toFixed(2) + "ms";
+            ctx.fillText(avgTickDuration, x + 10, y + 50, debugRectangleWidth);
+
+
+        }
 
         let sorters = [];
         for (let i = 0; i < matrix.length; i++) {
@@ -494,30 +556,26 @@
         let sortStarted = false;
         let chainedTick = function () {
             if (!sortStarted) {
-                stopReDraw();
+                DRAW();
                 return;
             }
             let somethingChanged = false;
+            debugInfoObject.startTick();
             for (let i = 0; i < sorters.length; i++) {
                 somethingChanged = sorters[i].oneTick() || somethingChanged;
             }
+            debugInfoObject.endTick();
             if (!somethingChanged) {
                 statusText = "All Sorted";
                 sorted = true;
                 sortStarted = false;
-                stopReDraw();
+                debugInfoObject.reset();
+                DRAW();
             } else {
                 DRAW();
                 window.requestAnimationFrame(chainedTick);
             }
         };
-        let reDrawInterval;
-        let hasSomethingToDraw = true;
-
-        function stopReDraw() {
-            DRAW();
-            clearInterval(reDrawInterval);
-        }
 
         function shuffleTheStuff() {
             for (let i = 0; i < matrix.length; i++) {
