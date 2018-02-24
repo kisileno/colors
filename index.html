@@ -492,9 +492,9 @@
         }
 
         beginDraw() {
-            this.lastDrawCallStart = new Date();
+            this.lastDrawCallStart = new Date().getTime();
             this.drawStartsList.push(this.lastDrawCallStart);
-            if (this.drawStartsList.length > 100) this.drawStartsList.shift();
+            if (this.drawStartsList.length > 1200) this.drawStartsList.shift();
         }
 
         endDraw() {
@@ -507,12 +507,15 @@
         }
 
         currentFps() {
-            let frames = this.drawStartsList.length;
-            if (frames < 100) return Infinity;
-            let timeSpentOnLastFrames = this.drawStartsList[frames - 1] - this.drawStartsList[0];
-            console.log(this.drawStartsList);
-            return 1000 * frames / timeSpentOnLastFrames;
-
+            let now = new Date().getTime();
+            let lastFrameInCurrentSecondI = 0;
+            for (; lastFrameInCurrentSecondI < this.drawStartsList.length; lastFrameInCurrentSecondI++) {
+                if (now - this.drawStartsList[lastFrameInCurrentSecondI] <= 1000) {
+                    break;
+                }
+            }
+            this.drawStartsList.splice(0, lastFrameInCurrentSecondI);
+            return this.drawStartsList.length;
         }
 
         beginTick() {
@@ -577,7 +580,7 @@
             let totalDrawCalls = "Total draw calls: " + debugInfo.numberOfDrawCalls;
             ctx.fillText(totalDrawCalls, x + 10, y + 35, debugRectangleWidth);
 
-            let currentFps = "Current FPS: " + Number(debugInfo.currentFps()).toFixed(2);
+            let currentFps = "Current FPS: " + debugInfo.currentFps();
             ctx.fillText(currentFps, x + 10, y + 50, debugRectangleWidth);
 
             let avgDrawCallDuration = "Avg Draw time: "  + Number(debugInfo.avgDrawCallDuration).toFixed(2) + "ms";
