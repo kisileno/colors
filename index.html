@@ -394,8 +394,8 @@
     const debugInfoCheckbox = document.getElementById("debugInfoCheckbox");
 
     const maxColourValue = 255;
-    const canvasWidth = mainBlock.offsetWidth;
-    const step = maxColourValue * 5 / canvasWidth;
+    const canvasWidth_GIVNO = mainBlock.offsetWidth;
+    const step = maxColourValue * 5 / canvasWidth_GIVNO;
 
     const DEFAULT_COLOUR_COMP = function (c1, c2) {
         return c1.compare(c2);
@@ -483,9 +483,6 @@
         }
 
         stop() {
-            if (!this.startTime) {
-                throw "nu blyaaa";
-            }
             this.totalTime += (new Date() - this.startTime);
             this.startTime = null;
             this.drawStartsList = [];
@@ -498,9 +495,6 @@
         }
 
         endDraw() {
-            if (!this.lastDrawCallStart) {
-                throw "pashol nahui suka";
-            }
             let now = new Date();
             let callDuration = now - this.lastDrawCallStart;
             this.avgDrawCallDuration = (this.avgDrawCallDuration * this.numberOfDrawCalls + callDuration) / ++this.numberOfDrawCalls;
@@ -523,31 +517,27 @@
         }
 
         endTick() {
-            if (!this.lastTickStart) {
-                throw "vasche ahuel??";
-            }
             let now = new Date();
             let tickDuration = now - this.lastTickStart;
             this.avgTickDuration = (this.avgTickDuration * this.numberOfTicks + tickDuration) / ++this.numberOfTicks;
-
         }
     }
 
 
-    function REGISTER_ALL_THE_SHIT(sorterCanvas, constructorMethod, canvasWidth, canvasHeight, step) {
-        let matrix = generateColourMatrix(canvasWidth, canvasHeight, step);
+    function REGISTER_ALL_THE_SHIT(sorterCanvas, constructorMethod, canvasWidth, canvasHeight, scaledWidth, scaledHeight, step) {
+        let matrix = generateColourMatrix(scaledWidth, scaledHeight, step);
         cacheColourObjects(matrix[0]);
         matrix.id = sorterCanvas.id + " matrix";
         let sorted = true;
         let statusText;
         const ctx = sorterCanvas.getContext("2d");
-        const imageData = ctx.getImageData(0, 0, sorterCanvas.width, canvasHeight);
+        const imageData = ctx.getImageData(0, 0, scaledWidth, scaledHeight);
         const actualData = imageData.data;
         const debugInfoObject = new DebugInfo("pahui zeleni");
 
         function DRAW() {
             debugInfoObject.beginDraw();
-            drawColourMatrix(matrix, ctx, imageData, actualData, canvasWidth);
+            drawColourMatrix(matrix, ctx, imageData, actualData, scaledWidth);
             debugInfoObject.endDraw();
             if (statusText && statusTextCheckbox.checked) drawStatusText(ctx, statusText, canvasWidth);
             if (debugInfoCheckbox.checked) drawDebugStats(ctx, debugInfoObject, canvasWidth, canvasHeight);
@@ -574,7 +564,9 @@
 
             let timeSpent = debugInfo.currentTotalTime();
             let millisecondsInMinute = 1000 * 60;
-            let timeSpentFormatted = "Time spent: " + Math.floor(timeSpent / (millisecondsInMinute)) + " min " + Math.round((timeSpent % (millisecondsInMinute))/ 1000) + " sec";
+            let timeSpentFormatted = "Time spent: "
+                + Math.floor(timeSpent / (millisecondsInMinute)) + " min "
+                + Number((timeSpent % (millisecondsInMinute))/ 1000).toFixed(1) + " sec "
             ctx.fillText(timeSpentFormatted, x + 10, y + 20, debugRectangleWidth);
 
             let totalDrawCalls = "Total draw calls: " + debugInfo.numberOfDrawCalls;
@@ -596,7 +588,7 @@
 
         let sorters = [];
         for (let i = 0; i < matrix.length; i++) {
-            sorters.push(constructorMethod(new CanvasArrayWrapper(actualData, 4 * i * canvasWidth, 4 * i * canvasWidth + canvasWidth * 4 - 4), DEFAULT_COLOUR_COMP));
+            sorters.push(constructorMethod(new CanvasArrayWrapper(actualData, 4 * i * scaledWidth, 4 * i * scaledWidth + scaledWidth * 4 - 4), DEFAULT_COLOUR_COMP));
         }
 
         let sortStarted = false;
@@ -633,13 +625,13 @@
 
         shuffleTheStuff();
         statusText = "Click me";
-        putMatrixToCanvasData(matrix, actualData, canvasWidth);
+        putMatrixToCanvasData(matrix, actualData, scaledWidth);
         DRAW();
         let regularClick = function () {
             if (sorted) {
                 shuffleTheStuff();
                 debugInfoObject.reset();
-                putMatrixToCanvasData(matrix, actualData, canvasWidth);
+                putMatrixToCanvasData(matrix, actualData, scaledWidth);
                 DRAW();
             } else if (sortStarted) {
                 statusText = "Paused";
@@ -666,12 +658,29 @@
         sorterDescription.innerHTML = ss.description;
         let br = document.createElement('br');
 
-        const canvasHeight = Math.ceil(canvasWidth / 2.2);
+        const canvasHeight = Math.ceil(canvasWidth_GIVNO / 2.2);
         let sorterCanvas = document.createElement('canvas');
         sorterCanvas.id = ss.name + "CanvasId";
-        sorterCanvas.width = canvasWidth;
+        sorterCanvas.width = canvasWidth_GIVNO;
         sorterCanvas.height = canvasHeight;
         sorterCanvas.innerHTML = "There should be HTML canvas with a pretty animation, but fuck you.";
+
+        const originalCanvasWidth = sorterCanvas.width;
+        const originalCanvasHeight = sorterCanvas.height;
+        let ctx = sorterCanvas.getContext("2d");
+        if (window.devicePixelRatio > 1) {
+            sorterCanvas.width = originalCanvasWidth * window.devicePixelRatio;
+            sorterCanvas.height = originalCanvasHeight * window.devicePixelRatio;
+            //console.log("before", sorterCanvas.style);
+            sorterCanvas.setAttribute("style", "width:" + originalCanvasWidth + "px");
+            //console.log("after", sorterCanvas.style.width);
+
+            sorterCanvas.setAttribute("style", "height:" + originalCanvasHeight + "px");
+
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        }
+        const scaledCanvasWidth = originalCanvasWidth * window.devicePixelRatio;
+        const scaledCanvasHeight = originalCanvasHeight * window.devicePixelRatio;
 
         sorterDiv.appendChild(sorterName);
         sorterDiv.appendChild(sorterDescription);
@@ -679,7 +688,7 @@
         sorterDiv.appendChild(sorterCanvas);
         mainBlock.appendChild(sorterDiv);
 
-        REGISTER_ALL_THE_SHIT(sorterCanvas, ss.constructorMethod, canvasWidth, canvasHeight, step);
+        REGISTER_ALL_THE_SHIT(sorterCanvas, ss.constructorMethod, originalCanvasWidth, originalCanvasHeight, scaledCanvasWidth, scaledCanvasHeight, step);
     });
 
 
