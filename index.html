@@ -110,7 +110,7 @@
 
         function drawDebugStats(ctx, debugInfo, canvasWidth, canvasHeight) {
             let debugRectangleWidth = 200;
-            let debugRectangleHeight = 100;
+            let debugRectangleHeight = 120;
             let x = canvasWidth - debugRectangleWidth;
             let y = canvasHeight - debugRectangleHeight;
             ctx.fillStyle = 'rgba(5, 5, 5, 0.5)';
@@ -124,7 +124,7 @@
             let millisecondsInMinute = 1000 * 60;
             let timeSpentFormatted = "Time spent: "
                 + Math.floor(timeSpent / (millisecondsInMinute)) + " min "
-                + Number((timeSpent % (millisecondsInMinute))/ 1000).toFixed(1) + " sec "
+                + Number((timeSpent % (millisecondsInMinute))/ 1000).toFixed(1) + " sec ";
             ctx.fillText(timeSpentFormatted, x + 10, y + 20, debugRectangleWidth);
 
             let totalDrawCalls = "Total draw calls: " + debugInfo.numberOfDrawCalls;
@@ -141,7 +141,10 @@
 
             let avgFps = "Avg FPS: " + Number(debugInfo.numberOfDrawCalls * 1000 / timeSpent).toFixed(2);
             ctx.fillText(avgFps, x + 10, y + 95, debugRectangleWidth);
-            
+
+            let mem = window.performance.memory;
+            let currentJSHeapSize = "JS Heap Size: " + ((mem && mem.usedJSHeapSize) ? Number(mem.usedJSHeapSize / 1024 / 1024).toFixed(2) : "??") + "MB";
+            ctx.fillText(currentJSHeapSize, x + 10, y + 110, debugRectangleWidth);
         }
 
         let sorters = [];
