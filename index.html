@@ -17,6 +17,7 @@
     <h1>Sorting algorithms swap comparisons</h1>
     <input id="statusTextCheckbox" type="checkbox" checked/><label>Status text</label>
     <input id="debugInfoCheckbox" type="checkbox" checked/><label>Debug info</label>
+    <input id="sizeInfoCheckbox" type="checkbox" checked/><label>Canvas Size info</label>
 
 </div>
 <script>
@@ -54,13 +55,14 @@
                 return new MergeSorter(array, comparator);
             },
             "This is a strange version of a merge sort which commits every merge result back to the source array."),
-        */
+
         new SorterSummary(
             "Quick Sort",
             function (array, comparator) {
                 return new QuickSorter(array, comparator);
             },
             "This is a basic implementation of the quick sort"),
+               */
         new SorterSummary(
             "Heap Sort",
             function (array, comparator) {
@@ -73,6 +75,7 @@
     const mainBlock = document.getElementById("mainBlock");
     const statusTextCheckbox = document.getElementById("statusTextCheckbox");
     const debugInfoCheckbox = document.getElementById("debugInfoCheckbox");
+    const sizeInfoCheckbox = document.getElementById("sizeInfoCheckbox");
 
     const maxColourValue = 255;
     const canvasWidth_GIVNO = mainBlock.offsetWidth;
@@ -91,7 +94,7 @@
         const ctx = sorterCanvas.getContext("2d");
         const imageData = ctx.getImageData(0, 0, scaledWidth, scaledHeight);
         const actualData = imageData.data;
-        const debugInfoObject = new DebugInfo("pahui zeleni");
+        const debugInfoObject = new DebugInfo("Not used yet.");
 
         function DRAW() {
             debugInfoObject.beginDraw();
@@ -99,6 +102,7 @@
             debugInfoObject.endDraw();
             if (statusText && statusTextCheckbox.checked) drawStatusText(ctx, statusText, canvasWidth);
             if (debugInfoCheckbox.checked) drawDebugStats(ctx, debugInfoObject, canvasWidth, canvasHeight);
+            if (sizeInfoCheckbox.checked) drawSizeText(ctx, canvasWidth, canvasHeight, scaledWidth, scaledHeight);
         }
 
         function drawStatusText(ctx, textToDraw, canvasWidth) {
@@ -106,6 +110,16 @@
             ctx.font = "bold 50px serif ";
             let textMeasurements = ctx.measureText(textToDraw);
             ctx.fillText(statusText, canvasWidth - textMeasurements.width - 15, 50);
+        }
+
+        function drawSizeText(ctx, canvasWidth, canvasHeight, scaledWidth, scaledHeight) {
+           ctx.font = "bold 20px serif ";
+           let text = scaledWidth + " × " + scaledHeight
+           let textMeasurements = ctx.measureText(text);
+           ctx.fillStyle = 'rgba(5, 5, 5, 0.5)';
+           ctx.fillRect(10, 10, textMeasurements.width + 10, 25);
+           ctx.fillStyle = "white";
+           ctx.fillText(text, 15, 30);
         }
 
         function drawDebugStats(ctx, debugInfo, canvasWidth, canvasHeight) {
@@ -142,9 +156,8 @@
             let avgFps = "Avg FPS: " + Number(debugInfo.numberOfDrawCalls * 1000 / timeSpent).toFixed(2);
             ctx.fillText(avgFps, x + 10, y + 95, debugRectangleWidth);
 
-            let mem = window.performance.memory;
-            let currentJSHeapSize = "JS Heap Size: " + ((mem && mem.usedJSHeapSize) ? Number(mem.usedJSHeapSize / 1024 / 1024).toFixed(2) : "??") + "MB";
-            ctx.fillText(currentJSHeapSize, x + 10, y + 110, debugRectangleWidth);
+            let currentOpPerSec = "Swaps per sec: " + debugInfo.currentOperationsDonePerSecond();
+            ctx.fillText(currentOpPerSec, x + 10, y + 110, debugRectangleWidth);
         }
 
         let sorters = [];
@@ -158,12 +171,18 @@
                 DRAW();
                 return;
             }
-            let somethingChanged = false;
+            let somethingChanged = false; //legacy, delete
             debugInfoObject.beginTick();
+            let numberOfSwapsHappened = 0;
             for (let i = 0; i < sorters.length; i++) {
-                somethingChanged = sorters[i].oneTick() || somethingChanged;
+                let particularTickChange = sorters[i].oneTick();
+                if (particularTickChange) {
+                    somethingChanged = true;
+                    numberOfSwapsHappened++;
+                }
             }
             debugInfoObject.endTick();
+            debugInfoObject.addOperations(numberOfSwapsHappened);
             if (!somethingChanged) {
                 statusText = "All Sorted";
                 sorted = true;
@@ -224,24 +243,21 @@
         sorterCanvas.id = ss.name + "CanvasId";
         sorterCanvas.width = canvasWidth_GIVNO;
         sorterCanvas.height = canvasHeight;
-        sorterCanvas.innerHTML = "There should be HTML canvas with a pretty animation, but fuck you.";
+        sorterCanvas.innerHTML = "There should be HTML canvas with a pretty animation, but looks like something broke.";
 
         const originalCanvasWidth = sorterCanvas.width;
         const originalCanvasHeight = sorterCanvas.height;
-        let ctx = sorterCanvas.getContext("2d");
-        if (window.devicePixelRatio > 1) {
-            sorterCanvas.width = originalCanvasWidth * window.devicePixelRatio;
-            sorterCanvas.height = originalCanvasHeight * window.devicePixelRatio;
-            //console.log("before", sorterCanvas.style);
-            sorterCanvas.setAttribute("style", "width:" + originalCanvasWidth + "px");
-            //console.log("after", sorterCanvas.style.width);
-
-            sorterCanvas.setAttribute("style", "height:" + originalCanvasHeight + "px");
-
-            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-        }
         const scaledCanvasWidth = originalCanvasWidth * window.devicePixelRatio;
         const scaledCanvasHeight = originalCanvasHeight * window.devicePixelRatio;
+
+        let ctx = sorterCanvas.getContext("2d");
+        if (window.devicePixelRatio > 1) {
+            sorterCanvas.width = scaledCanvasWidth;
+            sorterCanvas.height = scaledCanvasHeight;
+            sorterCanvas.setAttribute("style", "width:" + originalCanvasWidth + "px");
+            sorterCanvas.setAttribute("style", "height:" + originalCanvasHeight + "px");
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        }
 
         sorterDiv.appendChild(sorterName);
         sorterDiv.appendChild(sorterDescription);

@@ -13,6 +13,8 @@ class DebugInfo {
         this.avgDrawCallDuration = 0;
         this.avgTickDuration = 0;
         this.drawStartsList = [];
+        this.operationsDone = [];
+        this.operationsDoneTimings = [];
     }
     currentTotalTime() {
         if (this.startTime) {
@@ -28,6 +30,8 @@ class DebugInfo {
         this.totalTime += (new Date() - this.startTime);
         this.startTime = null;
         this.drawStartsList = [];
+        this.operationsDone = [];
+        this.operationsDoneTimings = [];
     }
     beginDraw() {
         this.lastDrawCallStart = new Date().getTime();
@@ -35,7 +39,7 @@ class DebugInfo {
         if (this.drawStartsList.length > 1200) this.drawStartsList.shift();
     }
     endDraw() {
-        let now = new Date();
+        let now = new Date().getTime();
         let callDuration = now - this.lastDrawCallStart;
         this.avgDrawCallDuration = (this.avgDrawCallDuration * this.numberOfDrawCalls + callDuration) / ++this.numberOfDrawCalls;
     }
@@ -50,6 +54,22 @@ class DebugInfo {
         this.drawStartsList.splice(0, lastFrameInCurrentSecondI);
         return this.drawStartsList.length;
     }
+    currentOperationsDonePerSecond() {
+        let now = new Date().getTime();
+        let lastOperationsDoneInCurrentSecondI = 0;
+        for (; lastOperationsDoneInCurrentSecondI < this.operationsDone.length; lastOperationsDoneInCurrentSecondI++) {
+            if (now - this.operationsDoneTimings[lastOperationsDoneInCurrentSecondI] <= 1000) {
+                break;
+            }
+        }
+        this.operationsDone.splice(0, lastOperationsDoneInCurrentSecondI);
+        this.operationsDoneTimings.splice(0, lastOperationsDoneInCurrentSecondI);
+        let totalOperationsDoneInLastSecond = 0;
+        for (let i = 0; i < this.operationsDone.length; i++) {
+           totalOperationsDoneInLastSecond += this.operationsDone[i];
+        }
+        return totalOperationsDoneInLastSecond;
+    }
     beginTick() {
         this.lastTickStart = new Date();
     }
@@ -57,5 +77,10 @@ class DebugInfo {
         let now = new Date();
         let tickDuration = now - this.lastTickStart;
         this.avgTickDuration = (this.avgTickDuration * this.numberOfTicks + tickDuration) / ++this.numberOfTicks;
+    }
+
+    addOperations(numberOfOperationsToAdd) {
+        this.operationsDone.push(numberOfOperationsToAdd);
+        this.operationsDoneTimings.push(new Date().getTime());
     }
 }
