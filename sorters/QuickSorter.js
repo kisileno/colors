@@ -22,8 +22,8 @@ class QuickSorter {
             if (slice.low < slice.high) {
                 let midElem = slice.midElem || this.arr.get(Math.floor(slice.low + (slice.high - slice.low) / 2));
                 slice.midElem = midElem;
-                let i = slice.i || slice.low;
-                let j = slice.j || slice.high;
+                let i = slice.i != null ? slice.i : slice.low;
+                let j = slice.j != null ? slice.j : slice.high;
                 while (i <= j) {
                     while (this.comparator(this.arr.get(i), midElem) < 0) {
                         i++;

@@ -2,6 +2,7 @@ class InsertionSorter {
     constructor(wrappedArrayToSort, comparator) {
         this.arr = wrappedArrayToSort;
         this.comparator = comparator;
+        this.reset();
     }
     reset() {
         this.patientInd = -1;

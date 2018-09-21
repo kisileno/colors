@@ -9,7 +9,7 @@
     <script type="text/javascript" src="sorters/QuickSorter.js"></script>
     <script type="text/javascript" src="utils-slash-hacks/ArrayUtils.js"></script>
     <script type="text/javascript" src="utils-slash-hacks/DebugUtils.js"></script>
-    <!--<script type="text/javascript" src="sorters/SortersTest.js"></script>-->
+    <script type="text/javascript" src="sorters/SortersTest.js"></script>
     <title>🌈Sorting algorithms🤤</title>
 </head>
 <body>
@@ -56,20 +56,21 @@
                 return new MergeSorter(array, comparator);
             },
             "This is a strange version of a merge sort which commits every merge result back to the source array."),
-
+          */
         new SorterSummary(
             "Quick Sort",
             function (array, comparator) {
                 return new QuickSorter(array, comparator);
             },
             "This is a basic implementation of the quick sort"),
-               */
+         /*
         new SorterSummary(
             "Heap Sort",
             function (array, comparator) {
                 return new HeapSorter(array, comparator);
             },
             "This is a heap sort implementation.")
+            */
     ];
 
 
