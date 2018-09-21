@@ -39,3 +39,7 @@ class Colour {
         return this.hue - other.hue;
     }
 }
+
+const DEFAULT_COLOUR_COMP = function (c1, c2) {
+    return c1.compare(c2);
+};
