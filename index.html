@@ -7,9 +7,11 @@
     <script type="text/javascript" src="sorters/MergeSorter.js"></script>
     <script type="text/javascript" src="sorters/HeapSorter.js"></script>
     <script type="text/javascript" src="sorters/QuickSorter.js"></script>
+    <script type="text/javascript" src="sorters/Sorters.js"></script>
     <script type="text/javascript" src="utils-slash-hacks/ArrayUtils.js"></script>
     <script type="text/javascript" src="utils-slash-hacks/DebugUtils.js"></script>
-    <script type="text/javascript" src="sorters/SortersTest.js"></script>
+    <script type="text/javascript" src="canvas/ColourUtils.js"></script>
+    <!--<script type="text/javascript" src="sorters/SortersTest.js"></script>-->
     <title>🌈Sorting algorithms🤤</title>
 </head>
 <body>
@@ -26,54 +28,6 @@
     const GLOBAL_COLOUR_MAP = [];
     let globalMapBuilt = false;
 
-    class SorterSummary {
-
-        constructor(name, constructorMethod, description) {
-            this.name = name;
-            this.constructorMethod = constructorMethod;
-            this.description = description;
-        }
-    }
-
-    const allSorters = [
-    /*
-        new SorterSummary(
-            "Bubble Sort",
-            function (array, comparator) {
-                return new BubbleSorter(array, comparator);
-            },
-            "This is a basic bubble sort impl."),
-        new SorterSummary(
-            "Insertion Sort",
-            function (array, comparator) {
-                return new InsertionSorter(array, comparator);
-            },
-            "This is a basic insertion sort impl."),
-
-        new SorterSummary(
-            "Merge Sort",
-            function (array, comparator) {
-                return new MergeSorter(array, comparator);
-            },
-            "This is a strange version of a merge sort which commits every merge result back to the source array."),
-          */
-        new SorterSummary(
-            "Quick Sort",
-            function (array, comparator) {
-                return new QuickSorter(array, comparator);
-            },
-            "This is a basic implementation of the quick sort"),
-         /*
-        new SorterSummary(
-            "Heap Sort",
-            function (array, comparator) {
-                return new HeapSorter(array, comparator);
-            },
-            "This is a heap sort implementation.")
-            */
-    ];
-
-
     const mainBlock = document.getElementById("mainBlock");
     const statusTextCheckbox = document.getElementById("statusTextCheckbox");
     const debugInfoCheckbox = document.getElementById("debugInfoCheckbox");
@@ -83,13 +37,12 @@
     const canvasWidth_GIVNO = mainBlock.offsetWidth;
     const step = maxColourValue * 5 / canvasWidth_GIVNO;
 
-    const DEFAULT_COLOUR_COMP = function (c1, c2) {
-        return c1.compare(c2);
-    };
-
     function REGISTER_ALL_THE_SHIT(sorterCanvas, constructorMethod, canvasWidth, canvasHeight, scaledWidth, scaledHeight, step) {
         let matrix = generateColourMatrix(scaledWidth, scaledHeight, step);
-        cacheColourObjects(matrix[0]);
+        if (!globalMapBuilt) {
+            cacheColourObjects(matrix[0], GLOBAL_COLOUR_MAP);
+            globalMapBuilt = true;
+        }
         matrix.id = sorterCanvas.id + " matrix";
         let sorted = true;
         let statusText;
@@ -115,13 +68,13 @@
         }
 
         function drawSizeText(ctx, canvasWidth, canvasHeight, scaledWidth, scaledHeight) {
-           ctx.font = "bold 20px serif ";
-           let text = scaledWidth + " × " + scaledHeight
-           let textMeasurements = ctx.measureText(text);
-           ctx.fillStyle = 'rgba(5, 5, 5, 0.5)';
-           ctx.fillRect(10, 10, textMeasurements.width + 10, 25);
-           ctx.fillStyle = "white";
-           ctx.fillText(text, 15, 30);
+            ctx.font = "bold 20px serif ";
+            let text = scaledWidth + " × " + scaledHeight
+            let textMeasurements = ctx.measureText(text);
+            ctx.fillStyle = 'rgba(5, 5, 5, 0.5)';
+            ctx.fillRect(10, 10, textMeasurements.width + 10, 25);
+            ctx.fillStyle = "white";
+            ctx.fillText(text, 15, 30);
         }
 
         function drawDebugStats(ctx, debugInfo, canvasWidth, canvasHeight) {
@@ -140,7 +93,7 @@
             let millisecondsInMinute = 1000 * 60;
             let timeSpentFormatted = "Time spent: "
                 + Math.floor(timeSpent / (millisecondsInMinute)) + " min "
-                + Number((timeSpent % (millisecondsInMinute))/ 1000).toFixed(1) + " sec ";
+                + Number((timeSpent % (millisecondsInMinute)) / 1000).toFixed(1) + " sec ";
             ctx.fillText(timeSpentFormatted, x + 10, y + 20, debugRectangleWidth);
 
             let totalDrawCalls = "Total draw calls: " + debugInfo.numberOfDrawCalls;
@@ -149,7 +102,7 @@
             let currentFps = "Current FPS: " + debugInfo.currentFps();
             ctx.fillText(currentFps, x + 10, y + 50, debugRectangleWidth);
 
-            let avgDrawCallDuration = "Avg Draw time: "  + Number(debugInfo.avgDrawCallDuration).toFixed(2) + "ms";
+            let avgDrawCallDuration = "Avg Draw time: " + Number(debugInfo.avgDrawCallDuration).toFixed(2) + "ms";
             ctx.fillText(avgDrawCallDuration, x + 10, y + 65, debugRectangleWidth);
 
             let avgTickDuration = "Avg Sort time: " + Number(debugInfo.avgTickDuration).toFixed(2) + "ms";
@@ -230,6 +183,7 @@
     }
 
     allSorters.forEach(function (ss) {
+        if (!ss.enabled) return;
 
         let sorterDiv = document.createElement('div');
 
@@ -254,6 +208,7 @@
 
         let ctx = sorterCanvas.getContext("2d");
         if (window.devicePixelRatio > 1) {
+            console.log("PIXEL RATION!!", window.devicePixelRatio);
             sorterCanvas.width = scaledCanvasWidth;
             sorterCanvas.height = scaledCanvasHeight;
             sorterCanvas.setAttribute("style", "width:" + originalCanvasWidth + "px");
@@ -269,123 +224,6 @@
 
         REGISTER_ALL_THE_SHIT(sorterCanvas, ss.constructorMethod, originalCanvasWidth, originalCanvasHeight, scaledCanvasWidth, scaledCanvasHeight, step);
     });
-
-
-    function generateColourMatrix(width, height, step) {
-
-        const rows = height;
-        const columns = width;
-        let colourMatrix = [];
-
-        const D_UP = 0;
-        const D_DOWN = 1;
-        const D_TOP = 2;
-        const D_BOTTOM = 3;
-        const D_THE_MOST_BOTTOM = 4;
-        const MAX_STEPS = maxColourValue / step;
-
-        class ColorState {
-            constructor(colorVal, direction, stepsDone) {
-                this.colorVal = colorVal;
-                this.direction = direction;
-                this.stepsDone = stepsDone;
-            }
-        }
-
-        let referenceRow = [];
-
-        let red = new ColorState(maxColourValue, D_TOP, 0);
-        let green = new ColorState(0, D_UP, 0);
-        let blue = new ColorState(0, D_THE_MOST_BOTTOM, 0);
-        let allTogether = [red, green, blue];
-        for (let j = 0; j < columns; j++) {
-            referenceRow.push(new Colour(red.colorVal, green.colorVal, blue.colorVal));
-            allTogether.forEach(function (c) {
-                if (c.stepsDone >= MAX_STEPS) {
-                    switch (c.direction) {
-                        case D_BOTTOM:
-                            c.direction = D_UP;
-                            break;
-                        case D_TOP:
-                            c.direction = D_DOWN;
-                            break;
-                        case D_UP:
-                            c.direction = D_TOP;
-                            break;
-                        case D_DOWN:
-                            c.direction = D_BOTTOM;
-                            break;
-                        case D_THE_MOST_BOTTOM:
-                            c.direction = D_BOTTOM;
-                            break;
-                    }
-                    c.stepsDone = 0;
-                }
-                switch (c.direction) {
-                    case D_BOTTOM:
-                        break;
-                    case D_TOP:
-                        break;
-                    case D_UP:
-                        c.colorVal += step;
-                        break;
-                    case D_DOWN:
-                        c.colorVal -= step;
-                        break;
-                    case D_THE_MOST_BOTTOM:
-                        break;
-                }
-                c.stepsDone++;
-            });
-        }
-        for (let i = 0; i < rows; i++) {
-            let newRow = [];
-            for (let k = 0; k < referenceRow.length; k++) {
-                let c = referenceRow[k];
-                newRow.push(new Colour(c.red, c.green, c.blue));
-            }
-            colourMatrix.push(newRow);
-        }
-        return colourMatrix;
-    }
-
-    function cacheColourObjects(colours) {
-        if (!globalMapBuilt) {
-            for (let i = 0; i < colours.length; i++) {
-                ADD_TO_GLOBAL_MAP(colours[i]);
-            }
-            globalMapBuilt = true;
-        }
-    }
-
-    function ADD_TO_GLOBAL_MAP(colour) {
-        if (!GLOBAL_COLOUR_MAP[colour.red]) {
-            GLOBAL_COLOUR_MAP[colour.red] = [];
-        }
-        if (!GLOBAL_COLOUR_MAP[colour.red][colour.green]) {
-            GLOBAL_COLOUR_MAP[colour.red][colour.green] = [];
-        }
-        GLOBAL_COLOUR_MAP[colour.red][colour.green][colour.blue] = colour;
-    }
-
-    function drawColourMatrix(matrix, canvasCtx, imageData, actualData, canvasWidth) {
-        canvasCtx.putImageData(imageData, 0, 0);
-    }
-
-    function putMatrixToCanvasData(matrix, actualData, canvasWidth) {
-        for (let i = 0; i < matrix.length; i++) {
-            let row = matrix[i];
-            for (let j = 0; j < row.length; j++) {
-                let col = row[j];
-                let offset = (i * canvasWidth) * 4 + j * 4;
-                actualData[offset] = col.red;
-                actualData[offset + 1] = col.green;
-                actualData[offset + 2] = col.blue;
-                actualData[offset + 3] = 255;
-            }
-        }
-    }
-
 
 
 </script>
