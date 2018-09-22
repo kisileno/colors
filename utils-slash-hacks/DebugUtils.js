@@ -15,6 +15,9 @@ class DebugInfo {
         this.drawStartsList = [];
         this.operationsDone = [];
         this.operationsDoneTimings = [];
+        this.lastRequestAnimationEnd = 0;
+        this.numberOfRequestAnimations = 0;
+        this.avgBrowserWorkTime = 0;
     }
     currentTotalTime() {
         if (this.startTime) {
@@ -32,11 +35,22 @@ class DebugInfo {
         this.drawStartsList = [];
         this.operationsDone = [];
         this.operationsDoneTimings = [];
+        this.numberOfRequestAnimations = 0;
+        this.lastRequestAnimationEnd = 0;
     }
     beginDraw() {
         this.lastDrawCallStart = new Date().getTime();
         this.drawStartsList.push(this.lastDrawCallStart);
         if (this.drawStartsList.length > 1200) this.drawStartsList.shift();
+    }
+    beginRequestAnimation() {
+        if (this.lastRequestAnimationEnd == 0) return;
+        let now = new Date().getTime();
+        let callDuration = now - this.lastRequestAnimationEnd;
+        this.avgBrowserWorkTime = (this.avgBrowserWorkTime * this.numberOfRequestAnimations + callDuration) / ++this.numberOfRequestAnimations;
+    }
+    endRequestAnimation() {
+        this.lastRequestAnimationEnd = new Date().getTime();
     }
     endDraw() {
         let now = new Date().getTime();

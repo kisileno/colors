@@ -79,7 +79,7 @@
 
         function drawDebugStats(ctx, debugInfo, canvasWidth, canvasHeight) {
             let debugRectangleWidth = 200;
-            let debugRectangleHeight = 120;
+            let debugRectangleHeight = 135;
             let x = canvasWidth - debugRectangleWidth;
             let y = canvasHeight - debugRectangleHeight;
             ctx.fillStyle = 'rgba(5, 5, 5, 0.5)';
@@ -87,7 +87,6 @@
 
             ctx.fillStyle = "white";
             ctx.font = "bold 15px serif ";
-
 
             let timeSpent = debugInfo.currentTotalTime();
             let millisecondsInMinute = 1000 * 60;
@@ -102,17 +101,22 @@
             let currentFps = "Current FPS: " + debugInfo.currentFps();
             ctx.fillText(currentFps, x + 10, y + 50, debugRectangleWidth);
 
-            let avgDrawCallDuration = "Avg Draw time: " + Number(debugInfo.avgDrawCallDuration).toFixed(2) + "ms";
+            let avgDrawCallDuration = "Avg Draw time: " + Number(debugInfo.avgDrawCallDuration).toFixed(2) + " ms";
             ctx.fillText(avgDrawCallDuration, x + 10, y + 65, debugRectangleWidth);
 
-            let avgTickDuration = "Avg Sort time: " + Number(debugInfo.avgTickDuration).toFixed(2) + "ms";
-            ctx.fillText(avgTickDuration, x + 10, y + 80, debugRectangleWidth);
+            let monitorRefreshRate = 60;
+            let actualBrowserWork = Math.max(0, debugInfo.avgBrowserWorkTime - 1000/60);
+            let avgBrowserWork = "Avg Browser lag: " + Number(actualBrowserWork).toFixed(2) + " ms";
+            ctx.fillText(avgBrowserWork, x + 10, y + 80, debugRectangleWidth);
+
+            let avgTickDuration = "Avg Sort time: " + Number(debugInfo.avgTickDuration).toFixed(2) + " ms";
+            ctx.fillText(avgTickDuration, x + 10, y + 95, debugRectangleWidth);
 
             let avgFps = "Avg FPS: " + Number(debugInfo.numberOfDrawCalls * 1000 / timeSpent).toFixed(2);
-            ctx.fillText(avgFps, x + 10, y + 95, debugRectangleWidth);
+            ctx.fillText(avgFps, x + 10, y + 110, debugRectangleWidth);
 
             let currentOpPerSec = "Swaps per sec: " + debugInfo.currentOperationsDonePerSecond();
-            ctx.fillText(currentOpPerSec, x + 10, y + 110, debugRectangleWidth);
+            ctx.fillText(currentOpPerSec, x + 10, y + 125, debugRectangleWidth);
         }
 
         let sorters = [];
@@ -122,6 +126,7 @@
 
         let sortStarted = false;
         let chainedTick = function () {
+            debugInfoObject.beginRequestAnimation();
             if (!sortStarted) {
                 DRAW();
                 return;
@@ -147,6 +152,7 @@
                 DRAW();
                 window.requestAnimationFrame(chainedTick);
             }
+            debugInfoObject.endRequestAnimation();
         };
 
         function shuffleTheStuff() {
@@ -208,7 +214,6 @@
 
         let ctx = sorterCanvas.getContext("2d");
         if (window.devicePixelRatio > 1) {
-            console.log("PIXEL RATION!!", window.devicePixelRatio);
             sorterCanvas.width = scaledCanvasWidth;
             sorterCanvas.height = scaledCanvasHeight;
             sorterCanvas.setAttribute("style", "width:" + originalCanvasWidth + "px");

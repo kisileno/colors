@@ -33,7 +33,7 @@ const allSorters = [
             return new MergeSorter(array, comparator);
         },
         "This is a strange version of a merge sort which commits every merge result back to the source array.",
-        true
+        false
     ),
 
     new SorterSummary(
@@ -52,6 +52,6 @@ const allSorters = [
             return new HeapSorter(array, comparator);
         },
         "This is a heap sort implementation.",
-        false
+        true
     )
 ];
