@@ -209,8 +209,8 @@
 
         const originalCanvasWidth = sorterCanvas.width;
         const originalCanvasHeight = sorterCanvas.height;
-        const scaledCanvasWidth = originalCanvasWidth * window.devicePixelRatio;
-        const scaledCanvasHeight = originalCanvasHeight * window.devicePixelRatio;
+        const scaledCanvasWidth = Math.floor(originalCanvasWidth * window.devicePixelRatio);
+        const scaledCanvasHeight = Math.floor(originalCanvasHeight * window.devicePixelRatio);
 
         let ctx = sorterCanvas.getContext("2d");
         if (window.devicePixelRatio > 1) {
