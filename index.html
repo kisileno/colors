@@ -54,10 +54,11 @@
         function DRAW() {
             debugInfoObject.beginDraw();
             drawColourMatrix(matrix, ctx, imageData, actualData, scaledWidth);
-            debugInfoObject.endDraw();
+            //debugInfoObject.endDraw();
             if (statusText && statusTextCheckbox.checked) drawStatusText(ctx, statusText, canvasWidth);
             if (debugInfoCheckbox.checked) drawDebugStats(ctx, debugInfoObject, canvasWidth, canvasHeight);
             if (sizeInfoCheckbox.checked) drawSizeText(ctx, canvasWidth, canvasHeight, scaledWidth, scaledHeight);
+            debugInfoObject.endDraw();
         }
 
         function drawStatusText(ctx, textToDraw, canvasWidth) {
@@ -105,7 +106,7 @@
             ctx.fillText(avgDrawCallDuration, x + 10, y + 65, debugRectangleWidth);
 
             let monitorRefreshRate = 60;
-            let actualBrowserWork = Math.max(0, debugInfo.avgBrowserWorkTime - 1000/60);
+            let actualBrowserWork = Math.max(0, debugInfo.avgBrowserWorkTime - (1000/monitorRefreshRate - debugInfo.avgTickDuration - debugInfo.avgDrawCallDuration));
             let avgBrowserWork = "Avg Browser lag: " + Number(actualBrowserWork).toFixed(2) + " ms";
             ctx.fillText(avgBrowserWork, x + 10, y + 80, debugRectangleWidth);
 
