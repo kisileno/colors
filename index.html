@@ -18,7 +18,7 @@
         /* to prevent ios from zooming-in */
         @media screen and (-webkit-min-device-pixel-ratio:0) {
           select, select:focus {
-            font-size: 16px;
+            font-size: 24px;
             background: #eee;
           }
         }
@@ -56,8 +56,12 @@
 
     const maxColourValue = 255;
     const canvasWidth_GIVNO = mainBlock.offsetWidth;
-    const step = maxColourValue * 5 / canvasWidth_GIVNO;
+    let step = 1;
     let CANVAS_SCALE = 1;
+
+    function calcStep() {
+        step = 255 * 5 / ( canvasWidth_GIVNO * CANVAS_SCALE);
+    }
 
     function addDefaultDisplayPixelRatio(scaleSelectElem) {
         const option = document.createElement('option');
@@ -74,6 +78,7 @@
         const newScale = canvasScaleSelect.options[canvasScaleSelect.selectedIndex].value;
         if (newScale != CANVAS_SCALE) {
             CANVAS_SCALE = newScale;
+            calcStep();
             createSorters();
         }
     }
