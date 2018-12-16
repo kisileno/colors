@@ -16,8 +16,11 @@
 
     <style>
         /* to prevent ios from zooming-in */
-        input, select, textarea {
-           font-size: 16px;
+        @media screen and (-webkit-min-device-pixel-ratio:0) {
+          select, select:focus {
+            font-size: 16px;
+            background: #eee;
+          }
         }
     </style>
 </head>
