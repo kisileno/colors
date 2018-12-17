@@ -18,7 +18,7 @@
         /* to prevent ios from zooming-in */
         @media screen and (-webkit-min-device-pixel-ratio:0) {
           select, select:focus {
-            font-size: 24px;
+            font-size:1em;
             background: #eee;
           }
         }
@@ -42,8 +42,6 @@
 
 </div>
 <script>
-
-    let mainDiv = null;
 
     const GLOBAL_COLOUR_MAP = [];
     let globalMapBuilt = false;
@@ -254,6 +252,7 @@
             const sorterDivId = ss.name + "-" + ss.name;
             let oldSorterDiv = document.getElementById(sorterDivId);
             if (oldSorterDiv) {
+                console.log("deleting the old canvas", oldSorterDiv);
                 for (let childElem of oldSorterDiv.children) {
                     if (childElem.id.indexOf("CanvasId") > -1) {
                        childElem.destroy();
@@ -283,21 +282,20 @@
             const scaledCanvasHeight = Math.floor(originalCanvasHeight * pixelRatio);
 
             let ctx = sorterCanvas.getContext("2d");
-            if (pixelRatio != 1 ) {
+
                 sorterCanvas.width = scaledCanvasWidth;
                 sorterCanvas.height = scaledCanvasHeight;
                 sorterCanvas.setAttribute("style", "width:" + originalCanvasWidth + "px");
                 sorterCanvas.setAttribute("style", "height:" + originalCanvasHeight + "px");
                 ctx.scale(pixelRatio, pixelRatio);
-            }
-            mainDiv = mainBlock;
 
+            console.log("Adding new canvas",sorterDiv); 
             sorterDiv.appendChild(sorterName);
             sorterDiv.appendChild(sorterDescription);
             sorterDiv.appendChild(br);
             sorterDiv.appendChild(sorterCanvas);
             mainBlock.appendChild(sorterDiv);
-
+            console.log("Registering all the shit");
             REGISTER_ALL_THE_SHIT(sorterCanvas, ss.constructorMethod, originalCanvasWidth, originalCanvasHeight, scaledCanvasWidth, scaledCanvasHeight, step);
         });
     }
