@@ -66,12 +66,7 @@ function generateColourMatrix(width, height, step) {
         });
     }
     for (let i = 0; i < rows; i++) {
-        let newRow = [];
-        for (let k = 0; k < referenceRow.length; k++) {
-            let c = referenceRow[k];
-            newRow.push(new Colour(c.red, c.green, c.blue));
-        }
-        colourMatrix.push(newRow);
+        colourMatrix.push(referenceRow.slice(0));
     }
     return colourMatrix;
 }
