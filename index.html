@@ -16,9 +16,23 @@
 
     <style>
         /* to prevent ios from zooming-in */
-        @media screen and (-webkit-min-device-pixel-ratio:0) {
+        @media screen and (device-aspect-ratio:375/667){
           select, select:focus {
-            font-size:1em;
+            font-size:16px;
+            background: #eee;
+          }
+        }
+        
+        @media screen and (device-aspect-ratio:9/16){
+          select, select:focus {
+            font-size:16px;
+            background: #eee;
+          }
+        }
+        
+        @media screen and (device-aspect-ratio:375/812){
+          select, select:focus {
+            font-size:16px;
             background: #eee;
           }
         }
@@ -54,8 +68,8 @@
 
     const maxColourValue = 255;
     const canvasWidth_GIVNO = mainBlock.offsetWidth;
-    let step = 1;
-    let CANVAS_SCALE = 1;
+    let step = null;
+    let CANVAS_SCALE = null;
 
     function calcStep() {
         step = 255 * 5 / ( canvasWidth_GIVNO * CANVAS_SCALE);
