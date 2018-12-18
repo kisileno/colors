@@ -30,13 +30,15 @@ class DebugInfo {
         this.startTime = new Date();
     }
     stop() {
-        this.totalTime += (new Date() - this.startTime);
-        this.startTime = null;
-        this.drawStartsList = [];
-        this.operationsDone = [];
-        this.operationsDoneTimings = [];
-        this.numberOfRequestAnimations = 0;
-        this.lastRequestAnimationEnd = 0;
+        if (this.startTime != null) {
+            this.totalTime += (new Date() - this.startTime);
+            this.startTime = null;
+            this.drawStartsList = [];
+            this.operationsDone = [];
+            this.operationsDoneTimings = [];
+            this.numberOfRequestAnimations = 0;
+            this.lastRequestAnimationEnd = 0;                
+        }
     }
     beginDraw() {
         this.lastDrawCallStart = new Date().getTime();
