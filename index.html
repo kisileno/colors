@@ -16,10 +16,18 @@
 
     <style>
         /* to prevent ios from zooming-in */
-        @media screen and (-webkit-min-device-pixel-ratio: 0)
+        /*@media screen and (-webkit-min-device-pixel-ratio: 0)
           select:focus, textarea:focus, input:focus {
             font-size:16px;
           }
+        }*/
+        canvas {
+            image-rendering: optimizeSpeed;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: optimize-contrast;
+            image-rendering: pixelated;
+            -ms-interpolation-mode: nearest-neighbor;
         }
     </style>
 </head>
@@ -32,11 +40,14 @@
     <input id="sizeInfoCheckbox" type="checkbox" checked/><label>Canvas Size info</label>
     <br>
     <label>Canvas Scale: </label><select id="canvasScaleSelect">
+        <option value=0.005>0.005</option>
+        <option value=0.025>0.025</option>
         <option value=0.5>0.5</option>
         <option value=1>1</option>
         <option value=1.5>1.5</option>
         <option value=2>2</option>
         <option value=3>3</option>
+        <option value=4>4</option>
     </select>
 
 </div>
@@ -92,6 +103,7 @@
         let sorted = true;
         let statusText;
         const ctx = sorterCanvas.getContext("2d");
+        ctx.imageSmoothingEnabled = false;
         const imageData = ctx.getImageData(0, 0, scaledWidth, scaledHeight);
         const actualData = imageData.data;
         const debugInfoObject = new DebugInfo("Not used yet.");
