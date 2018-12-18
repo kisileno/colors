@@ -232,11 +232,20 @@
             }
         };
         sorterCanvas.onclick = regularClick;
+        const visibilityChangeHandler = function() {
+            if (document.visibilityState == 'hidden') {
+                debugInfoObject.stop();
+            } else {
+                debugInfoObject.start();
+            }
+        }
+        document.addEventListener('visibilitychange', visibilityChangeHandler, false);
         sorterCanvas.destroy = function() {
-            console.log("destroying canvas");
             sortStarted = false;
             statusText = "Destroyed";
+            document.removeEventListener('visibilitychange', visibilityChangeHandler, false);
         }
+
     }
 
     function createSorters() {
@@ -251,7 +260,6 @@
             const sorterDivId = ss.name + "-" + ss.name;
             let oldSorterDiv = document.getElementById(sorterDivId);
             if (oldSorterDiv) {
-                console.log("deleting the old canvas", oldSorterDiv);
                 for (let childElem of oldSorterDiv.children) {
                     if (childElem.id.indexOf("CanvasId") > -1) {
                        childElem.destroy();
@@ -288,13 +296,12 @@
                 sorterCanvas.setAttribute("style", "height:" + originalCanvasHeight + "px");
                 ctx.scale(pixelRatio, pixelRatio);
 
-            console.log("Adding new canvas",sorterDiv); 
             sorterDiv.appendChild(sorterName);
             sorterDiv.appendChild(sorterDescription);
             sorterDiv.appendChild(br);
             sorterDiv.appendChild(sorterCanvas);
             mainBlock.appendChild(sorterDiv);
-            console.log("Registering all the shit");
+
             REGISTER_ALL_THE_SHIT(sorterCanvas, ss.constructorMethod, originalCanvasWidth, originalCanvasHeight, scaledCanvasWidth, scaledCanvasHeight, step);
         });
     }
