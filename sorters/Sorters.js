@@ -16,7 +16,7 @@ const allSorters = [
             return new BubbleSorter(array, comparator);
         },
         "This is a basic bubble sort impl.",
-        false,
+        true,
     ),
     new SorterSummary(
         "Insertion Sort",
@@ -24,7 +24,7 @@ const allSorters = [
             return new InsertionSorter(array, comparator);
         },
         "This is a basic insertion sort impl.",
-        false
+        true
     ),
 
     new SorterSummary(
@@ -33,7 +33,7 @@ const allSorters = [
             return new MergeSorter(array, comparator);
         },
         "This is a strange version of a merge sort which commits every merge result back to the source array.",
-        false
+        true
     ),
 
     new SorterSummary(
@@ -42,7 +42,7 @@ const allSorters = [
             return new QuickSorter(array, comparator);
         },
         "This is a basic implementation of the quick sort",
-        false
+        true
     ),
 
 
