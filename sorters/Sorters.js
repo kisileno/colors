@@ -11,32 +11,6 @@ class SorterSummary {
 const allSorters = [
 
     new SorterSummary(
-        "Bubble Sort",
-        function (array, comparator) {
-            return new BubbleSorter(array, comparator);
-        },
-        "This is a basic bubble sort impl.",
-        true,
-    ),
-    new SorterSummary(
-        "Insertion Sort",
-        function (array, comparator) {
-            return new InsertionSorter(array, comparator);
-        },
-        "This is a basic insertion sort impl.",
-        true
-    ),
-
-    new SorterSummary(
-        "Merge Sort",
-        function (array, comparator) {
-            return new MergeSorter(array, comparator);
-        },
-        "This is a strange version of a merge sort which commits every merge result back to the source array.",
-        true
-    ),
-
-    new SorterSummary(
         "Quick Sort",
         function (array, comparator) {
             return new QuickSorter(array, comparator);
@@ -45,7 +19,6 @@ const allSorters = [
         true
     ),
 
-
     new SorterSummary(
         "Heap Sort",
         function (array, comparator) {
@@ -53,5 +26,34 @@ const allSorters = [
         },
         "This is a heap sort implementation.",
         true
+    ),
+
+    new SorterSummary(
+        "Merge Sort",
+        function (array, comparator) {
+            return new MergeSorter(array, comparator);
+        },
+        "This is a modified version of a merge sort which commits every merge result back to the source array.",
+        false
+    ),
+
+    new SorterSummary(
+        "Bubble Sort",
+        function (array, comparator) {
+            return new BubbleSorter(array, comparator);
+        },
+        "This is a basic bubble sort impl.",
+        false,
+    ),
+
+    new SorterSummary(
+        "Insertion Sort",
+        function (array, comparator) {
+            return new InsertionSorter(array, comparator);
+        },
+        "This is a basic insertion sort impl.",
+        false
     )
+
+
 ];

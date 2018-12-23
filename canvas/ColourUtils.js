@@ -1,9 +1,4 @@
-function generateColourMatrix(width, height, step) {
-
-    const rows = height;
-    const columns = width;
-    let colourMatrix = [];
-
+function generateReferenceRow(width, step) {
     const D_UP = 0;
     const D_DOWN = 1;
     const D_TOP = 2;
@@ -25,7 +20,7 @@ function generateColourMatrix(width, height, step) {
     let green = new ColorState(0, D_UP, 0);
     let blue = new ColorState(0, D_THE_MOST_BOTTOM, 0);
     let allTogether = [red, green, blue];
-    for (let j = 0; j < columns; j++) {
+    for (let j = 0; j < width; j++) {
         referenceRow.push(new Colour(red.colorVal, green.colorVal, blue.colorVal));
         allTogether.forEach(function (c) {
             if (c.stepsDone >= MAX_STEPS) {
@@ -65,6 +60,12 @@ function generateColourMatrix(width, height, step) {
             c.stepsDone++;
         });
     }
+    return referenceRow;
+}
+
+function populateColourMatrix(referenceRow, rows) {
+    let colourMatrix = [];
+
     for (let i = 0; i < rows; i++) {
         colourMatrix.push(referenceRow.slice(0));
     }

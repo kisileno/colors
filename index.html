@@ -21,6 +21,16 @@
             font-size:16px;
           }
         }*/
+
+        *.noselect {
+          -webkit-touch-callout: none;
+            -webkit-user-select: none;
+             -khtml-user-select: none;
+               -moz-user-select: none;
+                -ms-user-select: none;
+                    user-select: none;
+        }
+
         canvas {
             /*image-rendering: optimizeSpeed;
             image-rendering: -moz-crisp-edges;
@@ -33,7 +43,7 @@
     </style>
 </head>
 <body>
-<div id="mainBlock">
+<div id="mainBlock" class="noselect">
 
     <h1>Sorting Algorithms Visualisation</h1>
     <input id="statusTextCheckbox" type="checkbox" checked/><label>Status text</label>
@@ -60,12 +70,12 @@
         <option value="-30">each 30th, slower</option>
         <option value="-100">each 100th, slowest</option>
     </select>
-
+    <br>
 </div>
 <script>
 
     const GLOBAL_COLOUR_MAP = [];
-    let globalMapBuilt = false;
+    let REFERENCE_COLOUR_ROW = null;
 
     const mainBlock = document.getElementById("mainBlock");
     const statusTextCheckbox = document.getElementById("statusTextCheckbox");
@@ -75,13 +85,30 @@
     const swapsPerFrameSelect = document.getElementById("swapsPerFrameSelect");
 
     const maxColourValue = 255;
-    const canvasWidth_GIVNO = mainBlock.offsetWidth;
+    const realCanvasWidth = mainBlock.offsetWidth;
     let step = null;
     let CANVAS_SCALE = null;
     let swapsPerFrame = null;
 
+    allSorters.forEach(function (ss) {
+        const sorterCheckbox = document.createElement('input');
+        sorterCheckbox.type = "checkbox";
+        sorterCheckbox.id = ss.name + "-CheckBox";
+        sorterCheckbox.checked = ss.enabled;
+        mainBlock.appendChild(sorterCheckbox);
+
+        const sorterLabel = document.createElement('label');
+        sorterLabel.innerHTML = ss.name + "    ";
+        mainBlock.appendChild(sorterLabel);
+
+        sorterCheckbox.onchange = function() {
+           ss.enabled = sorterCheckbox.checked;
+           createSorters(false);
+        };
+    });
+
     function calcStep() {
-        step = 255 * 5 / ( canvasWidth_GIVNO * CANVAS_SCALE);
+        step = 255 * 5 / ( realCanvasWidth * CANVAS_SCALE);
     }
 
     function addDefaultDisplayPixelRatio(scaleSelectElem) {
@@ -89,7 +116,6 @@
         const defaultRatio = window.devicePixelRatio;;
         option.value = defaultRatio;
         option.text = "Native scale: " + defaultRatio;
-        option.class = "doNotZoomInSelect";
         option.selected = true;
         scaleSelectElem.appendChild(option);
     }
@@ -100,7 +126,7 @@
         if (newScale != CANVAS_SCALE) {
             CANVAS_SCALE = newScale;
             calcStep();
-            createSorters();
+            createSorters(true);
         }
     }
     canvasScaleSelect.onchange = onCanvasScaleSelectChange;
@@ -112,12 +138,13 @@
     swapsPerFrameSelect.onchange = onSwapsPerFrameChange;
     onSwapsPerFrameChange();
 
-    function REGISTER_ALL_THE_SHIT(sorterCanvas, constructorMethod, canvasWidth, canvasHeight, scaledWidth, scaledHeight, step) {
-        let matrix = generateColourMatrix(scaledWidth, scaledHeight, step);
-        if (!globalMapBuilt) {
-            cacheColourObjects(matrix[0], GLOBAL_COLOUR_MAP);
-            globalMapBuilt = true;
+
+    function REGISTER_ALL_THE_STUFF(sorterCanvas, constructorMethod, canvasWidth, canvasHeight, scaledWidth, scaledHeight, step) {
+        if (REFERENCE_COLOUR_ROW == null) {
+            REFERENCE_COLOUR_ROW = generateReferenceRow(scaledWidth, step);
+            cacheColourObjects(REFERENCE_COLOUR_ROW, GLOBAL_COLOUR_MAP);
         }
+        let matrix = populateColourMatrix(REFERENCE_COLOUR_ROW, scaledHeight);
         matrix.id = sorterCanvas.id + " matrix";
         let sorted = true;
         let statusText;
@@ -292,18 +319,18 @@
 
     }
 
-    function createSorters() {
-        globalMapBuilt = false;
-        GLOBAL_COLOUR_MAP.length = 0;
-
+    function createSorters(forceRecreate) {
+        if (forceRecreate) {
+            GLOBAL_COLOUR_MAP.length = 0;
+            REFERENCE_COLOUR_ROW = null;
+        }
         allSorters.forEach(function (ss) {
-            if (!ss.enabled) return;
-
             let sorterDiv = document.createElement('div');
 
             const sorterDivId = ss.name + "-" + ss.name;
             let oldSorterDiv = document.getElementById(sorterDivId);
-            if (oldSorterDiv) {
+            let deleted = true;
+            if ((oldSorterDiv && !ss.enabled) || (oldSorterDiv && forceRecreate)) {
                 for (let childElem of oldSorterDiv.children) {
                     if (childElem.id.indexOf("CanvasId") > -1) {
                        childElem.destroy();
@@ -311,6 +338,9 @@
                 }
                 mainBlock.removeChild(oldSorterDiv);
             }
+            if (!ss.enabled) return;
+            if (!forceRecreate && oldSorterDiv) return;
+
 
             sorterDiv.id = sorterDivId;
             let sorterName = document.createElement('h3');
@@ -319,10 +349,10 @@
             sorterDescription.innerHTML = ss.description;
             let br = document.createElement('br');
 
-            const canvasHeight = Math.ceil(canvasWidth_GIVNO / 2.2);
+            const canvasHeight = Math.ceil(realCanvasWidth / 2.2);
             let sorterCanvas = document.createElement('canvas');
             sorterCanvas.id = ss.name + "CanvasId";
-            sorterCanvas.width = canvasWidth_GIVNO;
+            sorterCanvas.width = realCanvasWidth;
             sorterCanvas.height = canvasHeight;
             sorterCanvas.innerHTML = "There should be HTML canvas with a pretty animation, but looks like something broke.";
 
@@ -346,7 +376,7 @@
             sorterDiv.appendChild(sorterCanvas);
             mainBlock.appendChild(sorterDiv);
 
-            REGISTER_ALL_THE_SHIT(sorterCanvas, ss.constructorMethod, originalCanvasWidth, originalCanvasHeight, scaledCanvasWidth, scaledCanvasHeight, step);
+            REGISTER_ALL_THE_STUFF(sorterCanvas, ss.constructorMethod, originalCanvasWidth, originalCanvasHeight, scaledCanvasWidth, scaledCanvasHeight, step);
         });
     }
 
