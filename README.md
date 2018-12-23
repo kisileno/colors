@@ -7,9 +7,3 @@ The main purpose of this was to **save you some cellular data** and add a possib
 | --- | --- |
 | ![bubble](https://user-images.githubusercontent.com/1980807/50388176-82467600-06d4-11e9-9071-9f7542c7bb1d.gif) | ![ins](https://user-images.githubusercontent.com/1980807/50388177-82467600-06d4-11e9-9cc2-cb574cca3ca2.gif) |
 
-
-| Quick sort | Heap sort |
-| --- | --- |
-| ![quick](https://user-images.githubusercontent.com/1980807/50388175-81addf80-06d4-11e9-93e8-5e61c6a94f4b.gif) | ![heap](https://user-images.githubusercontent.com/1980807/50388306-65f80880-06d7-11e9-8010-6565fd3bcdfa.gif) |
-
-Inspired by [https://imgur.com/gallery/voutF](https://imgur.com/gallery/voutF)
