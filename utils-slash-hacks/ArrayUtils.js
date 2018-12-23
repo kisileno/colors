@@ -16,17 +16,17 @@ class AsIsArrayWrapper {
 class CanvasArrayWrapper {
     constructor(canvasDataArray, from, to, i) {
         if (from < 0) {
-            console.error("fuck you 1");
+            console.error("Error 1");
         }
         if (to > canvasDataArray.length - 4) {
-            console.error("fuck you 2");
+            console.error("Error 2");
         }
         if (from > to) {
-            console.error("fuck you 3");
+            console.error("Error 3");
         }
         this.length = to - from;
         if ((this.length % 4) !== 0) {
-            console.error("fuck you 4");
+            console.error("Error 4");
         }
         this.canvasDataArray = canvasDataArray;
         this.from = from;
