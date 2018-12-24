@@ -50,7 +50,7 @@
     <input id="debugInfoCheckbox" type="checkbox" checked/><label>Debug info</label>
     <input id="sizeInfoCheckbox" type="checkbox" checked/><label>Canvas size info</label>
     <br>
-    <label>Canvas scale : </label><select id="canvasScaleSelect">
+    <label>Canvas scale: </label><select id="canvasScaleSelect">
         <option value=0.015>1.5%, draw like it is 1980</option>
         <option value=0.025>2.5%, very pixelated</option>
         <option value=0.5>50%, pixelated</option>
@@ -173,22 +173,21 @@
         function DRAW() {
             debugInfoObject.beginDraw();
             drawColourMatrix(matrix, ctx, imageData, actualData, scaledWidth);
-            //debugInfoObject.endDraw();
             if (statusText && statusTextEnabled) drawStatusText(ctx, statusText, canvasWidth);
-            if (debugInfoCheckbox.checked) drawDebugStats(ctx, debugInfoObject, canvasWidth, canvasHeight);
-            if (sizeInfoCheckbox.checked) drawSizeText(ctx, canvasWidth, canvasHeight, scaledWidth, scaledHeight);
+            if (debugInfoEnabled) drawDebugStats(ctx, debugInfoObject, canvasWidth, canvasHeight);
+            if (sizeInfoEnabled) drawSizeText(ctx, canvasWidth, canvasHeight, scaledWidth, scaledHeight);
             debugInfoObject.endDraw();
         }
 
         function drawStatusText(ctx, textToDraw, canvasWidth) {
             ctx.fillStyle = "white";
-            ctx.font = "bold 50px serif ";
+            ctx.font = "bold 50px serif";
             let textMeasurements = ctx.measureText(textToDraw);
             ctx.fillText(statusText, canvasWidth - textMeasurements.width - 15, 50);
         }
 
         function drawSizeText(ctx, canvasWidth, canvasHeight, scaledWidth, scaledHeight) {
-            ctx.font = "bold 20px serif ";
+            ctx.font = "bold 20px serif";
             let text = scaledWidth + " × " + scaledHeight
             let textMeasurements = ctx.measureText(text);
             ctx.fillStyle = 'rgba(5, 5, 5, 0.5)';
@@ -206,7 +205,7 @@
             ctx.fillRect(x, y, debugRectangleWidth, debugRectangleHeight);
 
             ctx.fillStyle = "white";
-            ctx.font = "bold 15px serif ";
+            ctx.font = "bold 15px serif";
 
             let timeSpent = debugInfo.currentTotalTime();
             let millisecondsInMinute = 1000 * 60;
@@ -224,7 +223,7 @@
             let avgDrawCallDuration = "Avg Draw time: " + Number(debugInfo.avgDrawCallDuration).toFixed(2) + " ms";
             ctx.fillText(avgDrawCallDuration, x + 10, y + 65, debugRectangleWidth);
 
-            let monitorRefreshRate = 60;
+            let monitorRefreshRate = 60; //TODO calc monitor refresh rate properly
             let actualBrowserWork = Math.max(0, debugInfo.avgBrowserWorkTime - (1000/monitorRefreshRate - debugInfo.avgTickDuration - debugInfo.avgDrawCallDuration));
             let avgBrowserWork = "Avg Browser lag: " + Number(actualBrowserWork).toFixed(2) + " ms";
             ctx.fillText(avgBrowserWork, x + 10, y + 80, debugRectangleWidth);
