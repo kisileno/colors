@@ -15,7 +15,7 @@ const allSorters = [
         function (array, comparator) {
             return new QuickSorter(array, comparator);
         },
-        "This is an implementation of the quick sort algorithm. The fastest algorithm here.",
+        "This is an implementation of a quick sort algorithm. The fastest algorithm here.",
         true
     ),
 
@@ -24,7 +24,7 @@ const allSorters = [
         function (array, comparator) {
             return new HeapSorter(array, comparator);
         },
-        "This is an basic implementation of the a heap sort implementation.",
+        "This is an implementation of a heap sort algorithm.",
         true
     ),
 
@@ -42,7 +42,7 @@ const allSorters = [
         function (array, comparator) {
             return new InsertionSorter(array, comparator);
         },
-        "This is a basic insertion sort impl.",
+        "This is an implementation of insertion sort. One of the slowest algorithms here.",
         false
     ),
 
@@ -51,7 +51,7 @@ const allSorters = [
         function (array, comparator) {
             return new BubbleSorter(array, comparator);
         },
-        "This is an implementation of the bubble sort implementation. The slowest algorithm here.",
+        "This is an implementation of the bubble sort. The slowest algorithm here.",
         false,
     ),
 

@@ -48,17 +48,17 @@
     <center><h1>Sorting Algorithms Visualisation</h1></center>
     <input id="statusTextCheckbox" type="checkbox" checked/><label>Status text</label>
     <input id="debugInfoCheckbox" type="checkbox" checked/><label>Debug info</label>
-    <input id="sizeInfoCheckbox" type="checkbox" checked/><label>Canvas Size info</label>
+    <input id="sizeInfoCheckbox" type="checkbox" checked/><label>Canvas size info</label>
     <br>
     <label>Canvas scale : </label><select id="canvasScaleSelect">
-        <option value=0.015>0.015, draw like it is 1980</option>
-        <option value=0.025>0.025, very pixelated</option>
-        <option value=0.5>0.5, pixelated</option>
-        <option value=1>1</option>
-        <option value=1.5>1.5</option>
-        <option value=2>2</option>
-        <option value=3>3, sharp</option>
-        <option value=4>4, sharpest</option>
+        <option value=0.015>1.5%, draw like it is 1980</option>
+        <option value=0.025>2.5%, very pixelated</option>
+        <option value=0.5>50%, pixelated</option>
+        <option value=1>100%</option>
+        <option value=1.5>150%</option>
+        <option value=2>200%</option>
+        <option value=3>300%, sharp</option>
+        <option value=4>400%, sharpest</option>
     </select>
     <br>
     <label>Swaps per frame: </label><select id="swapsPerFrameSelect">
@@ -89,6 +89,9 @@
     let step = null;
     let CANVAS_SCALE = null;
     let swapsPerFrame = null;
+    let statusTextEnabled = statusTextCheckbox.checked;
+    let debugInfoEnabled = debugInfoCheckbox.checked;
+    let sizeInfoEnabled = sizeInfoCheckbox.checked;
 
     allSorters.forEach(function (ss) {
         const sorterCheckbox = document.createElement('input');
@@ -113,9 +116,9 @@
 
     function addDefaultDisplayPixelRatio(scaleSelectElem) {
         const option = document.createElement('option');
-        const defaultRatio = window.devicePixelRatio;;
+        const defaultRatio = window.devicePixelRatio;
         option.value = defaultRatio;
-        option.text = "Native scale: " + defaultRatio;
+        option.text = "Native scale: " + 100 * defaultRatio.toFixed(2) + "%";
         option.selected = true;
         scaleSelectElem.appendChild(option);
     }
@@ -138,6 +141,19 @@
     swapsPerFrameSelect.onchange = onSwapsPerFrameChange;
     onSwapsPerFrameChange();
 
+    statusTextCheckbox.onchange = function () {
+        statusTextEnabled = statusTextCheckbox.checked;
+        triggerRedraw();
+    }
+    sizeInfoCheckbox.onchange = function () {
+        sizeInfoEnabled = sizeInfoCheckbox.checked;
+        triggerRedraw();
+    }
+    debugInfoCheckbox.onchange = function () {
+        debugInfoEnabled = debugInfoCheckbox.checked;
+        triggerRedraw();
+    }
+
 
     function REGISTER_ALL_THE_STUFF(sorterCanvas, constructorMethod, canvasWidth, canvasHeight, scaledWidth, scaledHeight, step) {
         if (REFERENCE_COLOUR_ROW == null) {
@@ -158,7 +174,7 @@
             debugInfoObject.beginDraw();
             drawColourMatrix(matrix, ctx, imageData, actualData, scaledWidth);
             //debugInfoObject.endDraw();
-            if (statusText && statusTextCheckbox.checked) drawStatusText(ctx, statusText, canvasWidth);
+            if (statusText && statusTextEnabled) drawStatusText(ctx, statusText, canvasWidth);
             if (debugInfoCheckbox.checked) drawDebugStats(ctx, debugInfoObject, canvasWidth, canvasHeight);
             if (sizeInfoCheckbox.checked) drawSizeText(ctx, canvasWidth, canvasHeight, scaledWidth, scaledHeight);
             debugInfoObject.endDraw();
@@ -316,7 +332,11 @@
             statusText = "Destroyed";
             document.removeEventListener('visibilitychange', visibilityChangeHandler, false);
         }
-
+        sorterCanvas._draw = function () {
+            if (!sortStarted) {
+                DRAW();
+            }
+        }
     }
 
     function createSorters(forceRecreate) {
@@ -325,23 +345,17 @@
             REFERENCE_COLOUR_ROW = null;
         }
         allSorters.forEach(function (ss) {
-            let sorterDiv = document.createElement('div');
 
-            const sorterDivId = ss.name + "-" + ss.name;
+            const sorterDivId = ss.name + "-id";
             let oldSorterDiv = document.getElementById(sorterDivId);
-            let deleted = true;
             if ((oldSorterDiv && !ss.enabled) || (oldSorterDiv && forceRecreate)) {
-                for (let childElem of oldSorterDiv.children) {
-                    if (childElem.id.indexOf("CanvasId") > -1) {
-                       childElem.destroy();
-                    }
-                }
+                getCanvasFromSorterDiv(oldSorterDiv).destroy();
                 mainBlock.removeChild(oldSorterDiv);
             }
             if (!ss.enabled) return;
             if (!forceRecreate && oldSorterDiv) return;
 
-
+            let sorterDiv = document.createElement('div');
             sorterDiv.id = sorterDivId;
             let sorterName = document.createElement('h3');
             sorterName.innerHTML = ss.name;
@@ -378,6 +392,25 @@
 
             REGISTER_ALL_THE_STUFF(sorterCanvas, ss.constructorMethod, originalCanvasWidth, originalCanvasHeight, scaledCanvasWidth, scaledCanvasHeight, step);
         });
+    }
+
+    function getCanvasFromSorterDiv(sorterDiv) {
+        for (let childElem of sorterDiv.children) {
+            if (childElem.id.indexOf("CanvasId") > -1) {
+                return childElem;
+             }
+        }
+        return null;
+    }
+
+    function triggerRedraw() {
+         allSorters.forEach(function (ss) {
+             const sorterDivId = ss.name + "-id";
+             let oldSorterDiv = document.getElementById(sorterDivId);
+             if (oldSorterDiv) {
+                getCanvasFromSorterDiv(oldSorterDiv)._draw();
+             }
+         });
     }
 
 
