@@ -374,18 +374,17 @@
 
             const originalCanvasWidth = sorterCanvas.width;
             const originalCanvasHeight = sorterCanvas.height;
-            const pixelRatio = CANVAS_SCALE;
-            const scaledCanvasWidth = Math.floor(originalCanvasWidth * pixelRatio);
-            const scaledCanvasHeight = Math.floor(originalCanvasHeight * pixelRatio);
+            const scaledCanvasWidth = Math.floor(originalCanvasWidth * CANVAS_SCALE);
+            const scaledCanvasHeight = Math.floor(originalCanvasHeight * CANVAS_SCALE);
+    
+            sorterCanvas.width = scaledCanvasWidth;
+            sorterCanvas.height = scaledCanvasHeight;
+            sorterCanvas.setAttribute("style", "width:" + (scaledCanvasWidth / CANVAS_SCALE) + "px");
+            sorterCanvas.setAttribute("style", "height:" + (scaledCanvasHeight / CANVAS_SCALE) + "px");
 
             let ctx = sorterCanvas.getContext("2d");
-
-                sorterCanvas.width = scaledCanvasWidth;
-                sorterCanvas.height = scaledCanvasHeight;
-                sorterCanvas.setAttribute("style", "width:" + originalCanvasWidth + "px");
-                sorterCanvas.setAttribute("style", "height:" + originalCanvasHeight + "px");
-                ctx.scale(pixelRatio, pixelRatio);
-
+            ctx.scale(CANVAS_SCALE, CANVAS_SCALE);
+            
             sorterDiv.appendChild(sorterName);
             sorterDiv.appendChild(sorterDescription);
             sorterDiv.appendChild(br);
