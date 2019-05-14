@@ -6,26 +6,30 @@ class BubbleSorter {
     }
 
     reset() {
-        this.patientInd = 0;
+        this.startFromI = 0;
+        this.startFromJ = 0;
     }
 
     oneTick() {
-        for (let i = this.patientInd + 1; i < this.arr.size(); i++) {
-            let patient = this.arr.get(this.patientInd);
-            let toComp = this.arr.get(i);
-//            console.log("Comparing, ", patient, toComp);
-            if (this.comparator(patient, toComp) > 0) {
-                this.arr.set(toComp, this.patientInd);
-                this.arr.set(patient, i);
+        for (let i = this.startFromI ;i < this.arr.size()-1; i++) {
+            let swapDone = false;
+            for (let j = this.startFromJ; j < this.arr.size() - i -1; j++) {
+                let patient = this.arr.get(j);
+                let toComp = this.arr.get(j + 1);
+                //console.log("Comparing, ", patient, toComp);
+                if (this.comparator(patient, toComp) > 0) {
+                    this.arr.set(toComp, j);
+                    this.arr.set(patient, j + 1);
+                    swapDone = true;
+                }
+            }
+            if (swapDone) {
+                this.startFromI = i;
+                this.startFromJ = 0;
                 return true;
+            } else {
+                return false;
             }
         }
-        this.patientInd += 1;
-        if (this.patientInd > (this.arr.size() - 1)) {
-            return false;
-        } else {
-            return true;
-        }
-        
     }
 }
